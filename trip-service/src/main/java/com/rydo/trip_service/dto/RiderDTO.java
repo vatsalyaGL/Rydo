@@ -15,9 +15,19 @@ public class RiderDTO {
     @NotNull
     private UUID tripId;
     @NotNull
+    private UUID riderId;
+    private String riderName;
+    @NotNull
     private Double pickupLat;
     @NotNull
     private Double pickupLng;
-     // e.g., "SEDAN", "BIKE"
-    //private Double passengerRating;      Optional: to match with high-rated drivers
+    private String pickupAddress;
+    @NotNull
+    private Double dropoffLat;
+    @NotNull
+    private Double dropoffLng;
+    private String dropoffAddress;
+    private Double estimatedDistanceKm;
+    private Double estimatedFare;
+    private VehicleType vehicleType;
 }

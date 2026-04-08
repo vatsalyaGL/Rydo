@@ -107,6 +107,8 @@ public class TripService {
         response.setTripId(trip.getId());
         response.setStatus(trip.getStatus().name());
         if (trip.getStatus() == TripStatus.MATCHED) {
+            trip.setStatus(TripStatus.DRIVER_ARRIVING);
+            response.setStatus(trip.getStatus().name());
             response.setDriverId(trip.getDriverId());
         }
 
@@ -120,8 +122,17 @@ public class TripService {
     private RiderDTO mapToRiderDTO(Trip trip) {
         RiderDTO dto = new RiderDTO();
         dto.setTripId(trip.getId());
+        dto.setRiderId(trip.getRiderId());
+        dto.setRiderName("Rider"); // Placeholder, could fetch from user service
         dto.setPickupLat(trip.getPickupLat());
         dto.setPickupLng(trip.getPickupLng());
+        dto.setPickupAddress(trip.getPickupAddress());
+        dto.setDropoffLat(trip.getDropoffLat());
+        dto.setDropoffLng(trip.getDropoffLng());
+        dto.setDropoffAddress(trip.getDropoffAddress());
+        dto.setEstimatedDistanceKm(trip.getEstimatedDistanceKm() != null ? trip.getEstimatedDistanceKm().doubleValue() : null);
+        dto.setEstimatedFare(trip.getEstimatedFare() != null ? trip.getEstimatedFare().doubleValue() : null);
+        dto.setVehicleType(trip.getVehicleType());
         return dto;
     }
 
