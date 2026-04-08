@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -46,9 +47,16 @@ public class TripController {
 
         TripAcceptResponseDTO response = tripService.acceptRide(dto);
 
-        return ResponseEntity.ok(response); // ✅ send data to frontend
+        return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/status")
+    public ResponseEntity<TripStatusResponseDTO> getTripStatus(@Valid @RequestBody TripStatusRequest dto) {
+
+        TripStatusResponseDTO response = tripService.getTripStatus(dto);
+
+        return ResponseEntity.ok(response);
+    }
 //    @PostMapping("details")
 //    public ResponseEntity<TripDetails> getTripDetails(@Valid @RequestBody FetchTripDetails dto){
 //        TripDetails d =tripService.getTripDetails(dto);

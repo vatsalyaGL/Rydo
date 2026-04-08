@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 let L: any;
 
@@ -76,7 +77,8 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   async ngAfterViewInit() {
@@ -93,10 +95,16 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
   }
 
   private clearTimers() {
-    if (this.searchTimerRef) clearInterval(this.searchTimerRef);
-    if (this.pollIntervalRef) clearInterval(this.pollIntervalRef);
-    if (this.trackingPollRef) clearInterval(this.trackingPollRef);
+  if (this.searchTimerRef) {
+    clearInterval(this.searchTimerRef);
+    this.searchTimerRef = null;
   }
+
+  if (this.pollIntervalRef) {
+    clearInterval(this.pollIntervalRef);
+    this.pollIntervalRef = null;
+  }
+}
 
   // ── Map init ─────────────────────────────────────────────────────────────
   initMap() {
@@ -308,12 +316,15 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
 
   // ── Book Ride → triggers searching state ──────────────────────────────
   bookRide() {
+    console.log('📍 bookRide() called');
     if (!this.auth.getUserId()) {
       this.bookingError = 'You must be logged in to book a ride.';
+      console.error('❌ User not logged in');
       return;
     }
     if (this.distance === 0 || !this.destAddress) {
       this.bookingError = 'Please select a destination first.';
+      console.error('❌ No destination selected');
       return;
     }
 
@@ -321,6 +332,8 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     this.isBooking = true;
 
     const payload = this.buildPayload();
+    console.log('📤 Sending booking payload:', payload);
+    
     const userId = this.auth.getUserId();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -330,14 +343,18 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     this.http.post('http://localhost:8082/api/trips', payload, { headers })
       .subscribe({
         next: (response: any) => {
+          console.log('✅ Booking success:', response);
           this.zone.run(() => {
             this.isBooking = false;
             this.bookedTrip = response?.data ?? response;
+            console.log('📌 bookedTrip set to:', this.bookedTrip);
+            
             this.startSearchingState();
             this.cdr.detectChanges();
           });
         },
         error: (err: any) => {
+          console.error('❌ Booking error:', err);
           this.zone.run(() => {
             this.isBooking = false;
             this.bookingError = err?.error?.message ?? err?.error?.error ?? 'Booking failed. Please try again.';
@@ -349,55 +366,66 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
 
   // ── Searching State: countdown + poll for driver acceptance ──────────
   startSearchingState() {
+    console.log('🔍 startSearchingState() called');
     this.viewState = 'searching';
     this.searchSecondsLeft = 120;
     this.noDriverFound = false;
 
-    // Countdown timer
+    const tripId = this.bookedTrip?.id ?? this.bookedTrip?.tripId ?? this.bookedTrip?.trip_id;
+    console.log('📌 bookedTrip object:', this.bookedTrip);
+    console.log('📌 extracted tripId:', tripId);
+    
+    if (!tripId) {
+      console.error('❌ No tripId found! Cannot start polling');
+      return;
+    }
+
+    console.log('✅ Starting polling + timer for tripId:', tripId);
+
+    // ✅ Start BOTH timer + polling together
     this.searchTimerRef = setInterval(() => {
       this.zone.run(() => {
         this.searchSecondsLeft--;
+        console.log('⏱️ Timer tick - seconds left:', this.searchSecondsLeft);
+
+        // 🔁 Poll API on every tick
+        this.checkTripStatus(tripId);
+
         if (this.searchSecondsLeft <= 0) {
+          console.log('⏱️ Timeout reached');
           this.clearTimers();
           this.noDriverFound = true;
           this.cdr.detectChanges();
         }
       });
-    }, 1000);
-
-    // Poll backend every 5s for trip status
-    const tripId = this.bookedTrip?.id ?? this.bookedTrip?.tripId;
-    if (tripId) {
-      this.pollIntervalRef = setInterval(() => {
-        this.checkTripStatus(tripId);
-      }, 5000);
-    }
+    }, 2000); // ✅ now runs every 2 seconds
   }
 
-  private checkTripStatus(tripId: string) {
-    const userId = this.auth.getUserId();
-    const headers = new HttpHeaders(userId ? { 'X-User-Id': userId } : {});
-    this.http.get<any>(`http://localhost:8082/api/trips/${tripId}`, { headers })
-      .subscribe({
-        next: (trip) => {
-          this.zone.run(() => {
-            const status = trip?.status ?? trip?.data?.status;
-            const tripData = trip?.data ?? trip;
-            if (status === 'ACCEPTED' || status === 'IN_PROGRESS' || status === 'DRIVER_ASSIGNED') {
-              this.clearTimers();
-              this.acceptedTrip = tripData;
-              this.driverLat = tripData.driverLat ?? this.sourceLat;
-              this.driverLng = tripData.driverLng ?? this.sourceLng;
-              this.viewState = 'tracking';
-              this.cdr.detectChanges();
-              this.initTrackingMap();
-              this.startDriverTracking(tripId);
-            }
-          });
-        },
-        error: () => {}
-      });
-  }
+private checkTripStatus(tripId: string) {
+  const userId = this.auth.getUserId();
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    ...(userId ? { 'X-User-Id': userId } : {})
+  });
+
+  console.log('Polling trip status for:', tripId, 'with userId:', userId);
+  this.http.post<any>(`http://localhost:8082/api/trips/status`, { tripId }, { headers })
+    .subscribe({
+      next: (res: any) => {
+        console.log('Poll response:', res);
+        this.zone.run(() => {
+          if (res.status === 'MATCHED') {
+            console.log('Driver found:', res);
+            this.clearTimers();
+            this.router.navigate(['/ride'], { state: res });
+          }
+        });
+      },
+      error: (err: any) => {
+        console.error('Poll error:', err);
+      }
+    });
+}
 
   // ── Driver Tracking: poll driver location ─────────────────────────────
   startDriverTracking(tripId: string) {

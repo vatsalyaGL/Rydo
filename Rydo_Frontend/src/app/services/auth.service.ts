@@ -117,6 +117,11 @@ export class AuthService {
     return vt && vt !== 'undefined' ? vt : null;
   }
 
+  getVehicleNumber(): string | null {
+    const vn = typeof localStorage !== 'undefined' ? localStorage.getItem('vehicleNumber') : null;
+    return vn && vn !== 'undefined' ? vn : null;
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }

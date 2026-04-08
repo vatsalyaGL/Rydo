@@ -2,6 +2,7 @@ import { Component, AfterViewInit, NgZone, ChangeDetectorRef, OnDestroy } from '
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 let L: any;
 
@@ -46,7 +47,8 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   async ngAfterViewInit() {
@@ -97,12 +99,12 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     }
 
     const vehicleType = this.auth.getVehicleType() || 'ECONOMY';
-
+    
     const payload = {
       driverId: userId,
       driverLat: this.driverLat,
       driverLon: this.driverLng,
-      vehicleType: vehicleType
+      vehicleType: vehicleType,
     };
 
     this.http.post<any>(
@@ -143,12 +145,14 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
       tripId: rider.tripId
     };
 
+    console.log('Accepting ride with payload:', payload);
     this.http.post<any>(
       `http://localhost:8082/api/trips/accept-ride`,
       payload,
       { headers }
     ).subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('Accept ride success:', res);
         this.zone.run(() => {
           this.acceptedRide = rider;
           this.viewState = 'accepted';
@@ -157,6 +161,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
         });
       },
       error: (err) => {
+        console.log('Accept ride error:', err);
         this.zone.run(() => {
           this.errorMsg = err?.error?.message ?? 'Failed to accept ride.';
           this.cdr.detectChanges();
@@ -235,4 +240,6 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     };
     return icons[type] ?? '🚗';
   }
+
+
 }

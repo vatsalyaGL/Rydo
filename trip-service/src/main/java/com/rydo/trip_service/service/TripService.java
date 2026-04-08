@@ -1,10 +1,6 @@
 package com.rydo.trip_service.service;
 
-import com.rydo.trip_service.dto.DriverDTO;
-import com.rydo.trip_service.dto.RiderDTO;
-import com.rydo.trip_service.dto.TripAcceptDTO;
-import com.rydo.trip_service.dto.TripAcceptResponseDTO;
-import com.rydo.trip_service.dto.TripCreateRequest;
+import com.rydo.trip_service.dto.*;
 import com.rydo.trip_service.entity.Trip;
 import com.rydo.trip_service.enums.TripStatus;
 import com.rydo.trip_service.exception.TripNotFoundException;
@@ -100,6 +96,21 @@ public class TripService {
                 trip.getStatus(),
                 otp
         );
+    }
+
+    public TripStatusResponseDTO getTripStatus(TripStatusRequest dto) {
+
+        Trip trip = tripRepository.findById(dto.getTripId())
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        TripStatusResponseDTO response = new TripStatusResponseDTO();
+        response.setTripId(trip.getId());
+        response.setStatus(trip.getStatus().name());
+        if (trip.getStatus() == TripStatus.MATCHED) {
+            response.setDriverId(trip.getDriverId());
+        }
+
+        return response;
     }
 
     private int generateOtp() {
