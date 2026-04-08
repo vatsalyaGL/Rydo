@@ -59,46 +59,80 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {}
 
-  getDriverLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.zone.run(() => {
-          this.driverLat = pos.coords.latitude;
-          this.driverLng = pos.coords.longitude;
-        });
-      },
-      (err) => console.warn('Geolocation error:', err.message)
-    );
+  getDriverLocation(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(false);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.zone.run(() => {
+            this.driverLat = pos.coords.latitude;
+            this.driverLng = pos.coords.longitude;
+            resolve(true);
+          });
+        },
+        (err) => {
+          console.warn('Geolocation error:', err.message);
+          resolve(false);
+        }
+      );
+    });
   }
 
- getNearbyRiders() {
-  this.isFetching = true;
+  async getNearbyRiders() {
+    this.isFetching = true;
 
-  const payload = {
-    driverLat: this.driverLat,
-    driverLon: this.driverLng,
-    vehicleType: 'ECONOMY'
-  };
-
-  this.http.post<any>(
-    `http://localhost:8082/api/trips/nearby`,
-    payload
-  ).subscribe({
-    next: (res) => {
-      this.nearbyRiders = Array.isArray(res) ? res : [];
-      this.viewState = 'list';
-      this.isFetching = false;
-    },
-    error: () => {
-      this.errorMsg = 'Failed to fetch nearby riders';
-      this.isFetching = false;
-    }
-  });
-}
-
-  acceptRide(rider: NearbyRider) {
     const userId = this.auth.getUserId();
+    if (!userId) {
+      this.errorMsg = 'User not logged in';
+      this.isFetching = false;
+      return;
+    }
+
+    // Ensure location is fetched
+    if (this.driverLat === 0 && this.driverLng === 0) {
+      await this.getDriverLocation();
+    }
+
+    const vehicleType = this.auth.getVehicleType() || 'ECONOMY';
+
+    const payload = {
+      driverId: userId,
+      driverLat: this.driverLat,
+      driverLon: this.driverLng,
+      vehicleType: vehicleType
+    };
+
+    this.http.post<any>(
+      `http://localhost:8082/api/trips/nearby`,
+      payload
+    ).subscribe({
+      next: (res) => {
+        this.nearbyRiders = Array.isArray(res) ? res : [];
+        this.viewState = 'list';
+        this.isFetching = false;
+      },
+      error: () => {
+        this.errorMsg = 'Failed to fetch nearby riders';
+        this.isFetching = false;
+      }
+    });
+  }
+
+  async acceptRide(rider: NearbyRider) {
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.errorMsg = 'User not logged in';
+      return;
+    }
+
+    // Start fetching location for map
+    if (this.driverLat === 0 && this.driverLng === 0) {
+      this.getDriverLocation();
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       ...(userId ? { 'X-User-Id': userId } : {})
@@ -106,12 +140,11 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
     const payload = {
       driverId: userId,
-      driverLat: this.driverLat,
-      driverLng: this.driverLng
+      tripId: rider.tripId
     };
 
-    this.http.put<any>(
-      `http://localhost:8082/api/trips/${rider.tripId}/accept`,
+    this.http.post<any>(
+      `http://localhost:8082/api/trips/accept-ride`,
       payload,
       { headers }
     ).subscribe({

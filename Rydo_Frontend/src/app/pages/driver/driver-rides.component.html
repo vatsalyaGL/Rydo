@@ -53,26 +53,26 @@
             <div class="rc-name">{{ rider.riderName || 'Rider' }}</div>
             <div class="rc-type">{{ rider.vehicleType }}</div>
           </div>
-          <div class="rc-fare-badge">₹{{ rider.estimatedFare }}</div>
+          <div class="rc-fare-badge">₹{{ rider.estimatedFare || 'TBD' }}</div>
         </div>
 
         <!-- Stats row -->
         <div class="rc-stats">
           <div class="rc-stat">
             <span class="rc-stat-icon">📏</span>
-            <span class="rc-stat-val">{{ rider.estimatedDistanceKm | number:'1.1-1' }} km</span>
+            <span class="rc-stat-val">{{ (rider.estimatedDistanceKm || 0) | number:'1.1-1' }} km</span>
             <span class="rc-stat-label">Distance</span>
           </div>
           <div class="rc-stat-divider"></div>
           <div class="rc-stat">
             <span class="rc-stat-icon">💰</span>
-            <span class="rc-stat-val">₹{{ rider.estimatedFare }}</span>
+            <span class="rc-stat-val">₹{{ rider.estimatedFare || 'TBD' }}</span>
             <span class="rc-stat-label">Fare</span>
           </div>
           <div class="rc-stat-divider"></div>
           <div class="rc-stat">
             <span class="rc-stat-icon">⏱️</span>
-            <span class="rc-stat-val">~{{ (rider.estimatedDistanceKm * 3) | number:'1.0-0' }} min</span>
+            <span class="rc-stat-val">~{{ ((rider.estimatedDistanceKm || 0) * 3) | number:'1.0-0' }} min</span>
             <span class="rc-stat-label">Est. Time</span>
           </div>
         </div>
