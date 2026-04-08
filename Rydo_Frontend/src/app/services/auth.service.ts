@@ -83,6 +83,11 @@ export class AuthService {
     return role && role !== 'undefined' ? role : null;
   }
 
+  getVehicleType():string|null{
+    const role = typeof localStorage !== 'undefined' ? localStorage.getItem('selectedVehicleType') : null;
+    return role && role !== 'undefined' ? role : null;
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
