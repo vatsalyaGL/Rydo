@@ -1,0 +1,115 @@
+<div *ngIf="!loading; else loadTpl" class="fade-up">
+
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>Manage your personal information and account settings</p>
+  </div>
+
+  <div class="alert alert-success" *ngIf="success">✅ {{ success }}</div>
+  <div class="alert alert-error" *ngIf="error">⚠️ {{ error }}</div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <h3>Delete Account?</h3>
+      <p>This action is permanent and cannot be undone. All your data will be erased.</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="deleting">
+          <span *ngIf="deleting" class="spinner"></span>
+          {{ deleting ? 'Deleting…' : 'Yes, Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-layout">
+
+    <!-- Avatar card -->
+    <div class="card avatar-card">
+      <div class="big-avatar">{{ getInitial(user?.fullName || '') }}</div>
+      <h2>{{ user?.fullName || 'No name set' }}</h2>
+      <p class="text-secondary">{{ user?.phoneNumber }}</p>
+      <span class="badge" [ngClass]="'badge-' + (user?.role || 'user').toLowerCase()" style="margin-top: 8px;">
+        {{ user?.role }}
+      </span>
+
+      <div class="divider"></div>
+
+      <div class="meta-item">
+        <span class="meta-label">⭐ Rating</span>
+        <span class="meta-value">{{ user?.ratingAvg?.toFixed(1) || 'N/A' }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">✉️ Email</span>
+        <span class="meta-value">{{ user?.email || 'Not set' }}</span>
+      </div>
+    </div>
+
+    <!-- Edit form card -->
+    <div class="card edit-card">
+      <div class="card-header">
+        <h3>Account Details</h3>
+        <button class="btn btn-outline btn-sm" (click)="startEdit()" *ngIf="!editMode">✏️ Edit</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div *ngIf="!editMode">
+        <div class="field-row">
+          <span class="field-label">Full Name</span>
+          <span class="field-value">{{ user?.fullName || '—' }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Phone Number</span>
+          <span class="field-value">{{ user?.phoneNumber }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Email</span>
+          <span class="field-value">{{ user?.email || '—' }}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Role</span>
+          <span class="field-value">{{ user?.role }}</span>
+        </div>
+        <div class="field-row" style="border-bottom: none;">
+          <span class="field-label">User ID</span>
+          <span class="field-value uid">{{ user?.id }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="editMode" class="fade-up">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-control" [(ngModel)]="form.fullName" placeholder="Enter your full name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-control" type="email" [(ngModel)]="form.email" placeholder="Enter your email" />
+        </div>
+
+        <div class="edit-actions">
+          <button class="btn btn-outline" (click)="cancelEdit()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saving">
+            <span *ngIf="saving" class="spinner"></span>
+            {{ saving ? 'Saving…' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="danger-zone">
+        <h4>Danger Zone</h4>
+        <p>Permanently delete your account and all associated data.</p>
+        <button class="btn btn-danger btn-sm" (click)="confirmDelete()">🗑️ Delete Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadTpl>
+  <div class="flex-center" style="min-height: 60vh;">
+    <div class="spinner" style="width: 40px; height: 40px; border-width: 3px;"></div>
+  </div>
+</ng-template>

@@ -1,0 +1,23 @@
+package com.rydo.trip_service.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DriverDTO {
+    @NotNull
+    private UUID driverId;
+    @NotNull
+    private Double driverLat;
+    @NotNull
+    private Double driverLon;
+
+    @NotNull
+    private String vehicleType;
+}

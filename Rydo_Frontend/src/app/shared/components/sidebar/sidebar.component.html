@@ -1,0 +1,48 @@
+<nav class="sidebar" [class.open]="mobileOpen">
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">🚗</span>
+      <span class="logo-text">Rydo</span>
+    </div>
+    <button class="mobile-close" (click)="mobileOpen = false">✕</button>
+  </div>
+
+  <div class="sidebar-user" *ngIf="currentUser">
+    <div class="avatar">{{ getInitial(currentUser.fullName) }}</div>
+    <div class="user-info">
+      <div class="user-name">{{ currentUser.fullName || 'User' }}</div>
+      <span class="badge" [ngClass]="getRoleBadge(currentUser.role)">{{ currentUser.role }}</span>
+    </div>
+  </div>
+
+  <ul class="nav-links">
+    <li *ngFor="let item of navItems()">
+      <a [routerLink]="item.path" routerLinkActive="active" (click)="mobileOpen = false">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    </li>
+
+    <!-- Book a Ride — only for riders (USER / RIDER role) -->
+    <li *ngIf="isRider()">
+      <button class="action-pill-btn book-ride-btn" (click)="bookRideForm(); mobileOpen = false">
+        🚖 Book a Ride
+      </button>
+    </li>
+
+    <!-- Get a Rider — only for drivers -->
+    <li *ngIf="isDriver()">
+      <button class="action-pill-btn get-rider-btn" (click)="getARider(); mobileOpen = false">
+        🔍 Get a Rider
+      </button>
+    </li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <button class="btn btn-outline btn-full btn-sm" (click)="logout()">
+      <span>🚪</span> Sign Out
+    </button>
+  </div>
+</nav>
+
+<button class="mobile-menu-btn" (click)="mobileOpen = true">☰</button>

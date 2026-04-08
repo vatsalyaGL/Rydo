@@ -1,0 +1,84 @@
+<div class="auth-page">
+  <div class="auth-bg">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-brand">
+      <div class="brand-icon">🚗</div>
+      <h1 class="brand-name">Rydo</h1>
+      <p class="brand-tagline">Your city. Your ride. Anytime.</p>
+    </div>
+
+    <div class="auth-card">
+      <!-- Step indicator -->
+      <div class="steps">
+        <div class="step" [class.active]="step === 'phone'" [class.done]="step === 'otp'">
+          <div class="step-dot">{{ step === 'otp' ? '✓' : '1' }}</div>
+          <span>Phone</span>
+        </div>
+        <div class="step-line" [class.done]="step === 'otp'"></div>
+        <div class="step" [class.active]="step === 'otp'">
+          <div class="step-dot">2</div>
+          <span>Verify</span>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div class="alert alert-success" *ngIf="success">✅ {{ success }}</div>
+      <div class="alert alert-error" *ngIf="error">⚠️ {{ error }}</div>
+
+      <!-- Phone Step -->
+      <div *ngIf="step === 'phone'" class="fade-up">
+        <h2 class="form-title">Enter your number</h2>
+        <p class="form-sub">We'll send a one-time code to verify your identity</p>
+
+        <div class="form-group" style="margin-top: 28px;">
+          <label class="form-label">Phone Number</label>
+          <input
+            class="form-control"
+            type="tel"
+            [(ngModel)]="phoneNumber"
+            placeholder="+91 98765 43210"
+            (keyup.enter)="requestOtp()"
+            autofocus
+          />
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg" (click)="requestOtp()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner"></span>
+          <span>{{ loading ? 'Sending OTP…' : 'Send OTP →' }}</span>
+        </button>
+      </div>
+
+      <!-- OTP Step -->
+      <div *ngIf="step === 'otp'" class="fade-up">
+        <h2 class="form-title">Verify your number</h2>
+        <p class="form-sub">Enter the 6-digit code sent to <strong>{{ phoneNumber }}</strong></p>
+
+        <div class="otp-inputs" style="margin-top: 28px;">
+          <input
+            class="form-control otp-input"
+            type="text"
+            [(ngModel)]="otp"
+            placeholder="Enter OTP"
+            maxlength="6"
+            (keyup.enter)="verifyOtp()"
+            autofocus
+          />
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg" (click)="verifyOtp()" [disabled]="loading" style="margin-top: 20px;">
+          <span *ngIf="loading" class="spinner"></span>
+          <span>{{ loading ? 'Verifying…' : 'Verify & Sign In →' }}</span>
+        </button>
+
+        <button class="btn-link" (click)="goBack()">← Change number</button>
+      </div>
+    </div>
+
+    <p class="auth-footer">By continuing, you agree to Rydo's Terms of Service</p>
+  </div>
+</div>

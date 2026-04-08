@@ -1,0 +1,244 @@
+<div class="booking-wrapper">
+
+  <!-- ═══════════════════════════════════════════════════════
+       VIEW: BOOKING FORM
+  ════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="viewState === 'booking'">
+    <h1>🚖 Book Your Ride</h1>
+
+    <!-- Source -->
+    <div class="field-group">
+      <label>📍 Pickup Location</label>
+      <div class="input-with-btn">
+        <input type="text" [value]="sourceAddress"
+               placeholder="Detecting your location..." readonly />
+        <button class="locate-btn" (click)="getCurrentLocation()" title="Re-detect location">🔄</button>
+      </div>
+    </div>
+
+    <!-- Destination with live autocomplete -->
+    <div class="field-group">
+      <label>🏁 Destination</label>
+      <div class="autocomplete-wrapper">
+        <input
+          type="text"
+          [(ngModel)]="destSearchQuery"
+          (input)="onDestInput()"
+          (blur)="hideSuggestions()"
+          placeholder="Start typing a destination..."
+          autocomplete="off"
+        />
+        <ul class="suggestions" *ngIf="showSuggestions">
+          <li *ngFor="let s of suggestions" (mousedown)="selectSuggestion(s)">
+            <span class="s-icon">📌</span>
+            <div class="s-text">
+              <span class="s-name">{{ s.name || s.display_name.split(',')[0] }}</span>
+              <span class="s-sub">{{ s.display_name }}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Calculating spinner -->
+    <div class="calculating" *ngIf="isCalculating">
+      <span class="spinner"></span> Calculating route...
+    </div>
+
+    <!-- Vehicle selector with live fares -->
+    <div class="field-group" *ngIf="!isCalculating">
+      <label>🚗 Choose Vehicle</label>
+      <div class="car-options">
+        <label
+          *ngFor="let entry of fareRates | keyvalue"
+          class="car-card"
+          [class.selected]="carType === entry.key"
+        >
+          <input
+            type="radio"
+            name="carType"
+            [value]="entry.key"
+            [(ngModel)]="carType"
+            (change)="onCarTypeChange()"
+          />
+          <span class="car-icon">{{ entry.value.icon }}</span>
+          <span class="car-name">{{ entry.value.label }}</span>
+          <span class="car-rate" *ngIf="distance === 0">₹{{ entry.value.rate }}/km</span>
+          <span class="car-fare-live" *ngIf="distance > 0">₹{{ getFareForType(entry.key) }}</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Fare Summary -->
+    <div class="fare-summary" *ngIf="distance > 0 && !isCalculating">
+      <div class="fare-row">
+        <div class="fare-item">
+          <span class="fare-label">📏 Distance</span>
+          <strong>{{ distance }} km</strong>
+        </div>
+        <div class="fare-item">
+          <span class="fare-label">⏱️ Duration</span>
+          <strong>~{{ duration }} min</strong>
+        </div>
+        <div class="fare-item highlight">
+          <span class="fare-label">💰 Fare ({{ fareRates[carType].label }})</span>
+          <strong class="big-fare">₹{{ fare }}</strong>
+        </div>
+      </div>
+      <p class="fare-note">
+        Base ₹{{ fareRates[carType].base }} + {{ distance }} km × ₹{{ fareRates[carType].rate }}/km
+      </p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" *ngIf="bookingError">⚠️ {{ bookingError }}</div>
+
+    <!-- Book Button -->
+    <button
+      class="book-btn"
+      (click)="bookRide()"
+      [disabled]="!sourceAddress || !destAddress || distance === 0 || isCalculating || isBooking"
+    >
+      <span *ngIf="!isBooking && !isCalculating">
+        Book {{ fareRates[carType].icon }} {{ fareRates[carType].label }} — ₹{{ fare }}
+      </span>
+      <span *ngIf="isBooking"><span class="spinner sm"></span> Booking...</span>
+      <span *ngIf="isCalculating">Calculating...</span>
+    </button>
+
+    <!-- Map -->
+    <div class="map-label">🗺️ Route Map</div>
+    <div id="map"></div>
+  </ng-container>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       VIEW: SEARCHING FOR DRIVER (Loader)
+  ════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="viewState === 'searching'">
+    <div class="searching-screen">
+
+      <ng-container *ngIf="!noDriverFound">
+        <!-- Pulsing car animation -->
+        <div class="pulse-ring">
+          <div class="pulse-inner">🚗</div>
+        </div>
+
+        <h2 class="searching-title">Finding Your Driver</h2>
+        <p class="searching-sub">Looking for nearby drivers in your area...</p>
+
+        <!-- Countdown -->
+        <div class="countdown-area">
+          <div class="countdown-ring">
+            <svg viewBox="0 0 80 80" class="ring-svg">
+              <circle cx="40" cy="40" r="34" class="ring-bg"/>
+              <circle cx="40" cy="40" r="34" class="ring-progress"
+                [style.stroke-dashoffset]="213.6 - (213.6 * searchProgress / 100)"/>
+            </svg>
+            <div class="countdown-number">{{ searchSecondsLeft }}s</div>
+          </div>
+          <p class="countdown-label">Searching for up to 2 minutes</p>
+        </div>
+
+        <!-- Trip summary chips -->
+        <div class="search-trip-info" *ngIf="bookedTrip">
+          <div class="trip-chip">
+            <span class="chip-icon">📍</span>
+            <span class="chip-text">{{ sourceAddress | slice:0:40 }}...</span>
+          </div>
+          <div class="trip-chip-arrow">↓ {{ distance }} km · ~{{ duration }} min</div>
+          <div class="trip-chip">
+            <span class="chip-icon">🏁</span>
+            <span class="chip-text">{{ destAddress | slice:0:40 }}...</span>
+          </div>
+          <div class="trip-chip fare-chip">
+            <span class="chip-icon">💰</span>
+            <span class="chip-text">₹{{ fare }} · {{ fareRates[carType].label }}</span>
+          </div>
+        </div>
+
+        <button class="cancel-search-btn" (click)="cancelSearch()">✕ Cancel Search</button>
+      </ng-container>
+
+      <!-- No driver found state -->
+      <ng-container *ngIf="noDriverFound">
+        <div class="no-driver-icon">😔</div>
+        <h2 class="searching-title">No Drivers Found</h2>
+        <p class="searching-sub">We couldn't find a driver nearby right now. Please try again in a few minutes.</p>
+        <button class="book-btn" style="max-width: 280px; margin: 24px auto 0;" (click)="cancelSearch()">
+          ← Try Again
+        </button>
+      </ng-container>
+
+    </div>
+  </ng-container>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       VIEW: DRIVER ACCEPTED — TRACKING MAP
+  ════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="viewState === 'tracking'">
+    <div class="tracking-screen">
+
+      <div class="tracking-header">
+        <div class="driver-accepted-badge">
+          <span class="accepted-icon">✅</span>
+          <div>
+            <div class="accepted-title">Driver Accepted!</div>
+            <div class="accepted-sub">Your driver is on the way</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Driver info card -->
+      <div class="driver-card" *ngIf="acceptedTrip">
+        <div class="driver-avatar">🧑‍✈️</div>
+        <div class="driver-details">
+          <div class="driver-name">{{ acceptedTrip.driverName || 'Your Driver' }}</div>
+          <div class="driver-meta">{{ acceptedTrip.vehicleType || fareRates[carType].label }}</div>
+        </div>
+        <div class="driver-fare">
+          <div class="fare-big">₹{{ fare }}</div>
+          <div class="fare-small">Est. fare</div>
+        </div>
+      </div>
+
+      <!-- Live status bar -->
+      <div class="status-bar">
+        <div class="status-step active">
+          <span class="step-dot">●</span> Driver Assigned
+        </div>
+        <div class="status-line"></div>
+        <div class="status-step" [class.active]="acceptedTrip?.status === 'ARRIVED'">
+          <span class="step-dot">●</span> Driver Arriving
+        </div>
+        <div class="status-line"></div>
+        <div class="status-step" [class.active]="acceptedTrip?.status === 'IN_PROGRESS'">
+          <span class="step-dot">●</span> On Trip
+        </div>
+      </div>
+
+      <!-- Tracking Map -->
+      <div class="map-label">📍 Live Driver Location</div>
+      <div id="tracking-map"></div>
+
+      <!-- Trip details -->
+      <div class="tracking-details">
+        <div class="td-row">
+          <span class="td-label">Pickup</span>
+          <span class="td-val">{{ sourceAddress | slice:0:50 }}...</span>
+        </div>
+        <div class="td-row">
+          <span class="td-label">Drop</span>
+          <span class="td-val">{{ destAddress | slice:0:50 }}...</span>
+        </div>
+        <div class="td-row">
+          <span class="td-label">Distance</span>
+          <span class="td-val">{{ distance }} km · ~{{ duration }} min</span>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+</div>

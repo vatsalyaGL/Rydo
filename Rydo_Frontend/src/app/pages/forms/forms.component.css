@@ -1,0 +1,260 @@
+* { box-sizing: border-box; }
+
+.booking-wrapper {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 28px 24px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  color: #1e293b;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 28px;
+  font-weight: 700;
+  text-align: center;
+  color: #0f172a;
+}
+
+/* ── Field Groups ──────────────────────────────── */
+.field-group { margin-bottom: 22px; }
+.field-group > label {
+  display: block; font-weight: 600; font-size: 0.9rem;
+  margin-bottom: 8px; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+input[type="text"] {
+  width: 100%; padding: 12px 16px;
+  border: 1.5px solid #e2e8f0; border-radius: 14px;
+  font-size: 0.95rem; color: #1e293b;
+  background: #f8fafc; transition: border-color 0.2s;
+}
+input[type="text"]:focus { outline: none; border-color: #6366f1; background: white; }
+
+.input-with-btn { display: flex; gap: 8px; }
+.locate-btn {
+  padding: 0 14px; border-radius: 12px; border: 1.5px solid #e2e8f0;
+  background: #f1f5f9; cursor: pointer; font-size: 1.1rem;
+  transition: background 0.2s;
+}
+.locate-btn:hover { background: #e2e8f0; }
+
+/* ── Autocomplete ───────────────────────────────── */
+.autocomplete-wrapper { position: relative; }
+.suggestions {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: white; border: 1.5px solid #e2e8f0; border-radius: 14px;
+  list-style: none; margin: 0; padding: 6px 0; z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1); max-height: 260px; overflow-y: auto;
+}
+.suggestions li {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 14px; cursor: pointer; transition: background 0.15s;
+}
+.suggestions li:hover { background: #f1f5f9; }
+.s-icon { font-size: 1rem; padding-top: 2px; }
+.s-text { display: flex; flex-direction: column; }
+.s-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
+.s-sub { font-size: 0.78rem; color: #94a3b8; margin-top: 2px; }
+
+/* ── Calculating ───────────────────────────────── */
+.calculating {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: #f0f9ff; border-radius: 12px;
+  color: #0369a1; font-weight: 500; margin-bottom: 16px;
+}
+
+/* ── Car Options ───────────────────────────────── */
+.car-options {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;
+}
+.car-card {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 14px 10px; border-radius: 16px;
+  border: 2px solid #e2e8f0; cursor: pointer;
+  transition: all 0.2s; background: #f8fafc;
+}
+.car-card input[type="radio"] { display: none; }
+.car-card:hover { border-color: #6366f1; background: #f0f0ff; }
+.car-card.selected { border-color: #6366f1; background: #eef2ff; }
+.car-icon { font-size: 1.8rem; }
+.car-name { font-size: 0.82rem; font-weight: 600; color: #374151; }
+.car-rate { font-size: 0.78rem; color: #6b7280; }
+.car-fare-live { font-size: 0.88rem; font-weight: 700; color: #16a34a; }
+
+/* ── Fare Summary ──────────────────────────────── */
+.fare-summary {
+  background: linear-gradient(135deg, #667eea11, #764ba211);
+  border: 1.5px solid #e0e7ff; border-radius: 16px;
+  padding: 16px 20px; margin-bottom: 20px;
+}
+.fare-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.fare-item {
+  flex: 1; min-width: 100px; display: flex; flex-direction: column; gap: 4px;
+}
+.fare-item.highlight { background: rgba(99,102,241,0.08); border-radius: 12px; padding: 10px; }
+.fare-label { font-size: 0.8rem; color: #64748b; font-weight: 500; }
+.big-fare { font-size: 1.5rem; font-weight: 800; color: #4f46e5; }
+.fare-note { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+
+/* ── Buttons ────────────────────────────────────── */
+.book-btn {
+  display: block; width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white; border: none; border-radius: 16px;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 20px;
+}
+.book-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+.book-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.error-box {
+  background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626;
+  padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 0.9rem;
+}
+
+/* ── Map ────────────────────────────────────────── */
+.map-label { font-weight: 600; font-size: 0.88rem; color: #64748b; margin-bottom: 8px; }
+#map, #tracking-map {
+  width: 100%; height: 350px; border-radius: 16px;
+  overflow: hidden; border: 1.5px solid #e2e8f0;
+}
+
+/* ── Spinner ─────────────────────────────────────── */
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor; border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.spinner.sm { width: 14px; height: 14px; border-width: 2px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ══════════════════════════════════════════════════
+   SEARCHING SCREEN
+══════════════════════════════════════════════════ */
+.searching-screen {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 20px; text-align: center; min-height: 500px;
+}
+
+/* Pulse animation */
+.pulse-ring {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(99,102,241,0.1); margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; animation: pulseRing 1.8s ease-out infinite;
+}
+.pulse-ring::before, .pulse-ring::after {
+  content: ''; position: absolute; border-radius: 50%;
+  border: 2px solid rgba(99,102,241,0.3);
+  animation: ripple 1.8s ease-out infinite;
+}
+.pulse-ring::before { width: 120px; height: 120px; }
+.pulse-ring::after  { width: 150px; height: 150px; animation-delay: 0.4s; }
+.pulse-inner { font-size: 2.8rem; z-index: 1; }
+@keyframes pulseRing {
+  0%,100% { background: rgba(99,102,241,0.1); }
+  50%      { background: rgba(99,102,241,0.2); }
+}
+@keyframes ripple {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.searching-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin: 0 0 8px; }
+.searching-sub   { color: #64748b; margin: 0 0 28px; }
+
+/* Countdown ring */
+.countdown-area { margin-bottom: 28px; }
+.countdown-ring  { position: relative; width: 80px; height: 80px; margin: 0 auto 8px; }
+.ring-svg { width: 80px; height: 80px; transform: rotate(-90deg); }
+.ring-bg  { fill: none; stroke: #e2e8f0; stroke-width: 6; }
+.ring-progress {
+  fill: none; stroke: #6366f1; stroke-width: 6;
+  stroke-dasharray: 213.6; stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.countdown-number {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem; font-weight: 700; color: #4f46e5;
+}
+.countdown-label { font-size: 0.82rem; color: #94a3b8; }
+
+/* Trip info chips */
+.search-trip-info { width: 100%; max-width: 360px; margin-bottom: 28px; }
+.trip-chip {
+  display: flex; align-items: center; gap: 10px;
+  background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  padding: 10px 14px; text-align: left;
+}
+.trip-chip-arrow { color: #6366f1; font-weight: 600; font-size: 0.85rem; margin: 4px 0 4px 14px; }
+.chip-icon { font-size: 1.1rem; }
+.chip-text { font-size: 0.85rem; color: #475569; flex: 1; }
+.fare-chip { background: #f0fdf4; border-color: #bbf7d0; margin-top: 8px; }
+.fare-chip .chip-text { color: #16a34a; font-weight: 600; }
+
+.cancel-search-btn {
+  padding: 12px 32px; border-radius: 50px;
+  border: 2px solid #fca5a5; background: #fef2f2; color: #dc2626;
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.cancel-search-btn:hover { background: #fee2e2; }
+
+.no-driver-icon { font-size: 3.5rem; margin-bottom: 16px; }
+
+
+/* ══════════════════════════════════════════════════
+   TRACKING SCREEN
+══════════════════════════════════════════════════ */
+.tracking-screen { display: flex; flex-direction: column; gap: 16px; }
+
+.tracking-header { text-align: center; }
+.driver-accepted-badge {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: #f0fdf4; border: 2px solid #86efac;
+  border-radius: 50px; padding: 12px 20px;
+}
+.accepted-icon { font-size: 1.5rem; }
+.accepted-title { font-weight: 700; font-size: 1rem; color: #15803d; }
+.accepted-sub   { font-size: 0.82rem; color: #4ade80; }
+
+.driver-card {
+  display: flex; align-items: center; gap: 14px;
+  background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.driver-avatar { font-size: 2.4rem; }
+.driver-details { flex: 1; }
+.driver-name  { font-weight: 700; font-size: 1rem; color: #1e293b; }
+.driver-meta  { font-size: 0.82rem; color: #64748b; margin-top: 2px; }
+.driver-fare  { text-align: right; }
+.fare-big  { font-size: 1.4rem; font-weight: 800; color: #4f46e5; }
+.fare-small{ font-size: 0.78rem; color: #94a3b8; }
+
+.status-bar {
+  display: flex; align-items: center; gap: 0;
+  background: #f8fafc; border-radius: 12px; padding: 12px 16px;
+}
+.status-step {
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 0.75rem; color: #94a3b8; flex: 1; text-align: center;
+}
+.status-step.active { color: #4f46e5; font-weight: 600; }
+.status-step.active .step-dot { color: #6366f1; }
+.step-dot { font-size: 1rem; margin-bottom: 4px; color: #cbd5e1; }
+.status-line { flex: 1; height: 2px; background: #e2e8f0; margin: 0 4px; align-self: center; }
+
+.tracking-details {
+  background: #f8fafc; border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;
+}
+.td-row { display: flex; gap: 12px; align-items: flex-start; }
+.td-label { min-width: 70px; font-size: 0.78rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; padding-top: 2px; }
+.td-val { font-size: 0.88rem; color: #475569; flex: 1; }

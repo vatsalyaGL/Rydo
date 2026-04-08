@@ -1,0 +1,123 @@
+.dash-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+
+.greeting {
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.dash-name {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.dash-sub {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.header-badge {
+  padding-top: 8px;
+}
+
+.action-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.action-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(108,99,255,0.12);
+}
+
+.action-icon {
+  font-size: 32px;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.action-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.action-arrow {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.action-card:hover .action-arrow {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+
+.admin-status-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.status-chip {
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.status-chip.pending { border-color: rgba(245,158,11,0.3); color: var(--warning); }
+.status-chip.verified { border-color: rgba(34,197,94,0.3); color: var(--success); }
+.status-chip.rejected { border-color: rgba(239,68,68,0.3); color: var(--danger); }
+.status-chip.review, .status-chip.submitted, .status-chip.check { border-color: rgba(108,99,255,0.3); color: var(--accent); }
+
+/* ── Highlighted action cards ──────────────────────────── */
+.action-card-highlight {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important;
+  border: 2px solid #86efac !important;
+}
+.action-card-highlight h3 { color: #15803d !important; }
+.action-card-highlight .action-arrow { color: #22c55e !important; }
+
+.action-card-driver-cta {
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff) !important;
+  border: 2px solid #a5b4fc !important;
+}
+.action-card-driver-cta h3 { color: #4338ca !important; }
+.action-card-driver-cta .action-arrow { color: #6366f1 !important; }

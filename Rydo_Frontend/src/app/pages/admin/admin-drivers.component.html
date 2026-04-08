@@ -1,0 +1,127 @@
+<div class="fade-up">
+  <div class="page-header">
+    <h1>Manage Drivers</h1>
+    <p>Review and approve driver applications</p>
+  </div>
+
+  <div class="alert alert-success" *ngIf="success">{{ success }}</div>
+  <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+
+  <div class="filter-bar">
+    <div class="filter-label">Filter by Status</div>
+    <div class="status-tabs">
+      <button
+        *ngFor="let s of statuses"
+        class="status-tab"
+        [class.active]="selectedStatus === s"
+        (click)="selectedStatus = s; fetchDrivers()"
+      >{{ s.replace('_', ' ') }}</button>
+    </div>
+  </div>
+
+  <div class="flex-center" style="padding: 60px 0;" *ngIf="loading">
+    <div style="text-align: center;">
+      <div class="spinner" style="width: 36px; height: 36px; border-width: 3px; margin: 0 auto 12px;"></div>
+      <p class="text-muted">Loading drivers…</p>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && drivers.length === 0">
+    <div class="empty-icon"></div>
+    <h3>No drivers with status "{{ selectedStatus }}"</h3>
+    <p class="text-secondary">Try selecting a different status filter above.</p>
+  </div>
+
+  <div class="table-wrap" *ngIf="!loading && drivers.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Driver</th>
+          <th>Contact</th>
+          <th>Vehicle</th>
+          <th>Details</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of drivers">
+          <td>
+            <div class="driver-cell">
+              <div class="avatar" style="width: 36px; height: 36px; font-size: 14px;">
+                {{ d.fullName.charAt(0) || '?' }}
+              </div>
+              <div>
+                <div class="fw-700" style="font-size: 14px;">{{ d.fullName || '—' }}</div>
+                <div class="text-muted" style="font-size: 12px; font-family: monospace;">{{ d.userId }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div>{{ d.email || 'No email' }}</div>
+            <div class="text-muted" style="font-size: 12px;">{{ d.phoneNumber || 'No phone' }}</div>
+          </td>
+          <td>
+            <div>{{ d.vehicleMake || '—' }} {{ d.vehicleModel || '' }}</div>
+            <div class="text-muted" style="font-size: 12px;">{{ d.vehicleType }}</div>
+          </td>
+          <td>
+            <div>Year: {{ d.vehicleYear || 'N/A' }}</div>
+            <div>Color: {{ d.vehicleColor || 'N/A' }}</div>
+            <div>City ID: {{ d.cityId || 'N/A' }}</div>
+          </td>
+          <td><span class="badge" [ngClass]="getStatusClass(d.verificationStatus)">{{ d.verificationStatus }}</span></td>
+          <td class="action-cell">
+            <button
+              class="btn btn-success btn-sm"
+              (click)="approve(d.userId)"
+              [disabled]="approving === d.userId || d.verificationStatus === 'VERIFIED' || d.verificationStatus === 'REJECTED'"
+            >
+              <span *ngIf="approving === d.userId" class="spinner"></span>
+              {{ d.verificationStatus === 'VERIFIED' ? '✅ Approved' : (approving === d.userId ? 'Approving…' : 'Approve') }}
+            </button>
+            <button
+              class="btn btn-danger btn-sm"
+              (click)="openRejectModal(d.userId)"
+              [disabled]="rejecting === d.userId || d.verificationStatus === 'REJECTED' || d.verificationStatus === 'VERIFIED'"
+              style="margin-left: 8px;"
+            >
+              <span *ngIf="rejecting === d.userId" class="spinner"></span>
+              {{ d.verificationStatus === 'REJECTED' ? 'Rejected' : (rejecting === d.userId ? 'Rejecting…' : 'Reject') }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="results-count" *ngIf="!loading && drivers.length > 0">
+    Showing {{ drivers.length }} driver{{ drivers.length !== 1 ? 's' : '' }} with status <strong>{{ selectedStatus }}</strong>
+  </div>
+
+  <!-- Rejection Reason Modal -->
+  <div class="modal-overlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Reject Driver Application</h3>
+        <button class="btn-close" (click)="closeRejectModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Please provide a reason for rejecting this driver application:</p>
+        <textarea
+          class="form-control"
+          [(ngModel)]="rejectReason"
+          placeholder="Enter rejection reason (e.g., Documents not verified, Failed background check, etc.)"
+          rows="4"
+          style="margin-top: 12px;"
+        ></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeRejectModal()">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmReject()" [disabled]="!rejectReason.trim()">
+          Reject Driver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

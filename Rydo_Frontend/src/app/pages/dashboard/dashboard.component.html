@@ -1,0 +1,175 @@
+<div class="fade-up" *ngIf="!loading; else loadTpl">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <p class="greeting">{{ getGreeting() }},</p>
+      <h1 class="dash-name">{{ user?.fullName || 'Welcome' }}</h1>
+      <p class="dash-sub">Here's what's happening with your account today.</p>
+    </div>
+    <div class="header-badge">
+      <span class="badge" [ngClass]="'badge-' + role.toLowerCase()">{{ role }}</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       USER / RIDER Dashboard
+  ═══════════════════════════════════════ -->
+  <ng-container *ngIf="role === 'RIDER' || role === 'USER'">
+    <div class="grid-3" style="margin-bottom: 28px;">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(108,99,255,0.12);"></div>
+        <div class="stat-label">Phone</div>
+        <div class="stat-value" style="font-size: 1.1rem;">{{ user?.phoneNumber || '—' }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(34,197,94,0.12);"></div>
+        <div class="stat-label">Rating</div>
+        <div class="stat-value">{{ user?.ratingAvg?.toFixed(1) || '—' }}</div>
+        <div class="stat-sub">Average rating</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(245,158,11,0.12);"></div>
+        <div class="stat-label">Email</div>
+        <div class="stat-value" style="font-size: 1rem;">{{ user?.email || 'Not set' }}</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Book a Ride — prominent CTA for riders -->
+      <div class="action-card action-card-highlight" routerLink="/form">
+        <div class="action-icon">🚖</div>
+        <div>
+          <h3>Book a Ride</h3>
+          <p>Set your pickup & destination and find a driver now</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+
+      <div class="action-card" routerLink="/profile">
+        <div class="action-icon"></div>
+        <div>
+          <h3>My Profile</h3>
+          <p>Update your name, email, and personal details</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+
+      <a class="action-card" [routerLink]="['/driver/apply']">
+        <div class="action-icon"></div>
+        <div>
+          <h3>Become a Driver</h3>
+          <p>Apply to drive on the Rydo platform and earn</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </a>
+    </div>
+  </ng-container>
+
+  <!-- ══════════════════════════════════════
+       DRIVER Dashboard
+  ═══════════════════════════════════════ -->
+  <ng-container *ngIf="role === 'DRIVER'">
+    <div class="grid-4" style="margin-bottom: 28px;">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(108,99,255,0.12);"></div>
+        <div class="stat-label">Vehicle</div>
+        <div class="stat-value" style="font-size: 1rem;">
+          {{ driverProfile?.vehicleMake }} {{ driverProfile?.vehicleModel }}
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(34,197,94,0.12);"></div>
+        <div class="stat-label">Plate</div>
+        <div class="stat-value" style="font-size: 1.2rem;">{{ driverProfile?.vehiclePlate || '—' }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(245,158,11,0.12);"></div>
+        <div class="stat-label">Vehicle Type</div>
+        <div class="stat-value" style="font-size: 1rem;">{{ driverProfile?.vehicleType || '—' }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(168,85,247,0.12);"></div>
+        <div class="stat-label">Status</div>
+        <div style="margin-top: 4px;">
+          <span class="badge" [ngClass]="getStatusClass(driverProfile?.verificationStatus || '')">
+            {{ driverProfile?.verificationStatus || 'PENDING' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Get a Rider — primary CTA for drivers -->
+      <div class="action-card action-card-driver-cta" routerLink="/driver/rides">
+        <div class="action-icon">🔍</div>
+        <div>
+          <h3>Get a Rider</h3>
+          <p>Find nearby ride requests, see fare &amp; distance, and accept trips</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+
+      <div class="action-card" routerLink="/driver/profile">
+        <div class="action-icon"></div>
+        <div>
+          <h3>Driver Profile</h3>
+          <p>View and update your vehicle and license details</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+
+      <div class="action-card" routerLink="/profile">
+        <div class="action-icon"></div>
+        <div>
+          <h3>Account Settings</h3>
+          <p>Manage your personal information</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══════════════════════════════════════
+       ADMIN Dashboard
+  ═══════════════════════════════════════ -->
+  <ng-container *ngIf="role === 'ADMIN'">
+    <div class="grid-2" style="margin-bottom: 28px;">
+      <div class="action-card" routerLink="/admin/drivers">
+        <div class="action-icon"></div>
+        <div>
+          <h3>Manage Drivers</h3>
+          <p>Review, approve or reject driver applications</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+      <div class="action-card" routerLink="/admin/users">
+        <div class="action-icon">👥</div>
+        <div>
+          <h3>Manage Users</h3>
+          <p>Search and manage user accounts on the platform</p>
+        </div>
+        <span class="action-arrow">→</span>
+      </div>
+    </div>
+
+    <div class="admin-status-grid">
+      <div class="status-chip pending"> Pending Review</div>
+      <div class="status-chip submitted"> Docs Submitted</div>
+      <div class="status-chip review">Under Review</div>
+      <div class="status-chip check"> Background Check</div>
+      <div class="status-chip verified"> Verified</div>
+      <div class="status-chip rejected"> Rejected</div>
+    </div>
+  </ng-container>
+
+</div>
+
+<ng-template #loadTpl>
+  <div class="flex-center" style="min-height: 60vh;">
+    <div style="text-align: center;">
+      <div class="spinner" style="width: 40px; height: 40px; border-width: 3px; margin: 0 auto 16px;"></div>
+      <p class="text-muted">Loading your dashboard…</p>
+    </div>
+  </div>
+</ng-template>

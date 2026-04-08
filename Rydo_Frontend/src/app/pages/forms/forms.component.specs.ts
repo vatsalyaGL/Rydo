@@ -1,0 +1,27 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { FormsComponent } from './forms.component';
+import { beforeEach, describe, it } from 'node:test';
+
+describe('FormsComponent', () => {
+  let component: FormsComponent;
+  let fixture: ComponentFixture<FormsComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [FormsComponent]
+    })
+    .compileComponents();
+    
+    fixture = TestBed.createComponent(FormsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+function expect(component: FormsComponent) {
+  throw new Error('Function not implemented.');
+}

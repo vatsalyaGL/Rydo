@@ -1,0 +1,137 @@
+<div *ngIf="!loading; else loadTpl" class="fade-up">
+
+  <!-- Not a driver yet -->
+  <div class="empty-state" *ngIf="notFound">
+    <div class="empty-icon">🚗</div>
+    <h2>No Driver Profile Found</h2>
+    <p>You haven't applied to become a driver yet.</p>
+    <a routerLink="/driver/apply" class="btn btn-primary btn-lg">Apply Now →</a>
+  </div>
+
+  <ng-container *ngIf="!notFound && driver">
+    <div class="page-header">
+      <h1>Driver Profile</h1>
+      <p>Your vehicle information and verification status</p>
+    </div>
+
+    <div class="alert alert-success" *ngIf="success"> {{ success }}</div>
+    <div class="alert alert-error" *ngIf="error"> {{ error }}</div>
+
+    <!-- Status banner -->
+    <div class="status-banner" [ngClass]="'status-' + driver.verificationStatus">
+      <span class="status-big-icon">{{ getStatusIcon(driver.verificationStatus) }}</span>
+      <div>
+        <div class="status-title">Verification Status</div>
+        <div class="status-value">{{ driver.verificationStatus }}</div>
+      </div>
+      <span class="badge" [ngClass]="getStatusClass(driver.verificationStatus)">
+        {{ driver.verificationStatus }}
+      </span>
+    </div>
+
+    <div class="profile-grid">
+      <!-- Vehicle Card -->
+      <div class="card">
+        <div class="card-header" style="margin-bottom: 20px;">
+          <h3>Vehicle Details</h3>
+          <button class="btn btn-outline btn-sm" (click)="startEdit()" *ngIf="!editMode">✏️ Edit</button>
+        </div>
+
+        <div *ngIf="!editMode">
+          <div class="field-row">
+            <span class="field-label">Make & Model</span>
+            <span class="field-value">{{ driver.vehicleMake }} {{ driver.vehicleModel }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">License Plate</span>
+            <span class="field-value plate">{{ driver.vehiclePlate }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Vehicle Type</span>
+            <span class="field-value">
+              <span class="badge badge-review">{{ driver.vehicleType }}</span>
+            </span>
+          </div>
+          <div class="field-row" style="border: none;">
+            <span class="field-label">Driver Name</span>
+            <span class="field-value">{{ driver.fullName }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="editMode" class="fade-up">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">License Number</label>
+              <input class="form-control" [(ngModel)]="form.licenseNumber" placeholder="License #" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle Type</label>
+              <select class="form-control" [(ngModel)]="form.vehicleType">
+                <option *ngFor="let t of vehicleTypes" [value]="t">{{ t }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Make</label>
+              <input class="form-control" [(ngModel)]="form.vehicleMake" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Model</label>
+              <input class="form-control" [(ngModel)]="form.vehicleModel" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Year</label>
+              <select class="form-control" [(ngModel)]="form.vehicleYear">
+                <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Color</label>
+              <input class="form-control" [(ngModel)]="form.vehicleColor" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Plate</label>
+              <input class="form-control" [(ngModel)]="form.vehiclePlate" style="text-transform: uppercase;" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">City ID</label>
+              <input class="form-control" type="number" [(ngModel)]="form.cityId" />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button class="btn btn-outline" (click)="cancelEdit()">Cancel</button>
+            <button class="btn btn-primary" (click)="save()" [disabled]="saving">
+              <span *ngIf="saving" class="spinner"></span>
+              {{ saving ? 'Saving…' : 'Save Changes' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info card -->
+      <div class="card">
+        <h3 style="margin-bottom: 20px;">Verification Journey</h3>
+        <div class="journey">
+          <div class="journey-step" *ngFor="let s of ['PENDING','DOCS_SUBMITTED','UNDER_REVIEW','BACKGROUND_CHECK','VERIFIED']"
+               [class.done]="isStepDone(s)"
+               [class.current]="driver.verificationStatus === s">
+            <div class="journey-dot"></div>
+            <div class="journey-label">{{ s.replace('_',' ') }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #loadTpl>
+  <div class="flex-center" style="min-height: 60vh;">
+    <div class="spinner" style="width: 40px; height: 40px; border-width: 3px;"></div>
+  </div>
+</ng-template>

@@ -1,0 +1,107 @@
+<div class="fade-up">
+  <div class="page-header">
+    <h1>Manage Users</h1>
+    <p>Search and manage user accounts on the platform</p>
+  </div>
+
+  <div class="alert alert-success" *ngIf="success">✅ {{ success }}</div>
+  <div class="alert alert-error" *ngIf="error">⚠️ {{ error }}</div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <h3>Delete User?</h3>
+      <p>You are about to permanently delete <strong>{{ user?.fullName }}</strong>. This cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="deleteUser()" [disabled]="deleting">
+          <span *ngIf="deleting" class="spinner"></span>
+          {{ deleting ? 'Deleting…' : 'Yes, Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search panel -->
+  <div class="search-panel">
+    <div class="search-block">
+      <label class="form-label">Search by Phone Number</label>
+      <div class="search-row">
+        <input class="form-control" [(ngModel)]="searchPhone" placeholder="+91 98765 43210"
+               (keyup.enter)="searchByPhone()" />
+        <button class="btn btn-primary" (click)="searchByPhone()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner"></span>
+          🔍 Search
+        </button>
+      </div>
+    </div>
+
+    <div class="search-divider">
+      <span>or</span>
+    </div>
+
+    <div class="search-block">
+      <label class="form-label">Search by User ID</label>
+      <div class="search-row">
+        <input class="form-control" [(ngModel)]="searchId" placeholder="UUID"
+               (keyup.enter)="searchById()" style="font-family: monospace; font-size: 13px;" />
+        <button class="btn btn-primary" (click)="searchById()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner"></span>
+          🔍 Search
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-area" *ngIf="searched && !loading">
+
+    <!-- Not found -->
+    <div class="not-found" *ngIf="!user">
+      <div class="empty-icon">🔍</div>
+      <h3>No user found</h3>
+      <p class="text-secondary">Try a different phone number or ID.</p>
+      <button class="btn btn-outline btn-sm" (click)="clear()" style="margin-top: 12px;">Clear Search</button>
+    </div>
+
+    <!-- User card -->
+    <div class="user-result-card" *ngIf="user">
+      <div class="user-result-header">
+        <div class="result-avatar">{{ getInitial(user.fullName) }}</div>
+        <div class="user-result-info">
+          <h2>{{ user.fullName || 'No name' }}</h2>
+          <p>{{ user.phoneNumber }}</p>
+          <span class="badge" [ngClass]="getRoleClass(user.role)">{{ user.role }}</span>
+        </div>
+        <button class="btn btn-outline btn-sm" (click)="clear()">✕ Clear</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="user-details-grid">
+        <div class="detail-item">
+          <span class="detail-label">User ID</span>
+          <span class="detail-value uid">{{ user.id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ user.email || '—' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Rating</span>
+          <span class="detail-value">⭐ {{ user.ratingAvg.toFixed(1) || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Role</span>
+          <span class="detail-value">{{ user.role }}</span>
+        </div>
+      </div>
+
+      <div class="user-result-actions">
+        <button class="btn btn-danger" (click)="confirmDelete()">🗑️ Delete User</button>
+      </div>
+    </div>
+  </div>
+
+</div>
