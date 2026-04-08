@@ -2,9 +2,12 @@ package com.rydo.trip_service.service;
 
 import com.rydo.trip_service.dto.DriverDTO;
 import com.rydo.trip_service.dto.RiderDTO;
+import com.rydo.trip_service.dto.TripAcceptDTO;
+import com.rydo.trip_service.dto.TripAcceptResponseDTO;
 import com.rydo.trip_service.dto.TripCreateRequest;
 import com.rydo.trip_service.entity.Trip;
 import com.rydo.trip_service.enums.TripStatus;
+import com.rydo.trip_service.exception.TripNotFoundException;
 import com.rydo.trip_service.repository.TripRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +15,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -68,6 +73,37 @@ public class TripService {
         return nearbyTrips.stream()
                 .map(this::mapToRiderDTO)
                 .toList(); // Java 16+
+    }
+
+    public TripAcceptResponseDTO acceptRide(TripAcceptDTO dto) {
+
+        UUID tripId = dto.getTripId();
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        if (trip.getStatus() != TripStatus.SEARCHING) {
+            throw new RuntimeException("Trip is not available for acceptance");
+        }
+
+        trip.setDriverId(dto.getDriverId());
+        trip.setStatus(TripStatus.MATCHED);
+        trip.setMatchedAt(OffsetDateTime.now()); // ✅ good practice
+
+        tripRepository.save(trip);
+
+        int otp = generateOtp();
+
+        return new TripAcceptResponseDTO(
+                trip.getId(),
+                trip.getDriverId(),
+                trip.getRiderId(),
+                trip.getStatus(),
+                otp
+        );
+    }
+
+    private int generateOtp() {
+        return 1000 + new Random().nextInt(9000); // ensures 4-digit OTP
     }
 
     private RiderDTO mapToRiderDTO(Trip trip) {
