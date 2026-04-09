@@ -27,6 +27,7 @@ export class RatingComponent implements OnInit {
   ratingData: RatingData | null = null;
   loading = true;
   submitting = false;
+  successMessage = '';
 
   // Rating form
   score: number = 5;
@@ -44,7 +45,7 @@ export class RatingComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private auth: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.tripId = this.route.snapshot.paramMap.get('tripId')!;
@@ -137,11 +138,23 @@ export class RatingComponent implements OnInit {
       tags: this.selectedTags
     };
 
-    this.http.post('http://localhost:8010/api/v1/ratings', payload, { headers })
-      .subscribe({
+    this.http.post(
+      'http://localhost:8010/api/v1/ratings',
+      payload,
+      {
+        headers,
+        responseType: 'text'   // ✅ THIS IS THE FIX
+      }
+    ).subscribe({
         next: () => {
           console.log('Rating submitted successfully');
-          this.router.navigate(['/dashboard']);
+
+          this.successMessage = 'Rating submitted successfully!';
+          this.submitting = false;
+
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 1200);
         },
         error: (err) => {
           console.error('Error submitting rating:', err);

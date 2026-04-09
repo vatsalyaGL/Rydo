@@ -1,3 +1,6 @@
+<div *ngIf="successMessage" class="success-banner">
+  {{ successMessage }}
+</div>
 <div class="rating-container" *ngIf="!loading && ratingData">
   <div class="rating-header">
     <h2>Rate Your {{ ratingData.rateeRole === 'DRIVER' ? 'Driver' : 'Rider' }}</h2>

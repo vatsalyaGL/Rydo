@@ -184,6 +184,15 @@
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
 }
+.success-banner {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
 
 @keyframes spin {
   to { transform: rotate(360deg); }
