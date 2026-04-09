@@ -57,6 +57,17 @@ public class TripController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/complete-status")
+    public void completeRide(@Valid @RequestBody TripCompleteRequest dto){
+        tripService.completeTrip(dto);
+    }
+
+    @PostMapping("/get-complete")
+    public ResponseEntity<TripCompleteResponse> getTripCompleteStatus(@Valid @RequestBody TripCompleteRequest dto ){
+        TripCompleteResponse response = tripService.getCompleteStatus(dto);
+        return ResponseEntity.ok(response);
+    }
 //    @PostMapping("details")
 //    public ResponseEntity<TripDetails> getTripDetails(@Valid @RequestBody FetchTripDetails dto){
 //        TripDetails d =tripService.getTripDetails(dto);

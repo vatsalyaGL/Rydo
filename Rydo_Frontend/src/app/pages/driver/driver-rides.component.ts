@@ -258,5 +258,45 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     return icons[type] ?? '🚗';
   }
 
+  completeTrip() {
+    if (!this.acceptedRide) return;
+
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.errorMsg = 'User not logged in';
+      return;
+    }
+
+    const tripId = this.acceptedRide.tripId;
+    const payload = {
+      tripId: tripId,
+      driverId: userId
+    };
+
+    // Call the complete-status API
+    this.http.put<any>(
+      `http://localhost:8082/api/trips/complete-status`,
+      payload
+    ).subscribe({
+      next: (res) => {
+        console.log('Trip completed successfully:', res);
+        // Navigate to payment page after successful API call
+        this.router.navigate(['/payment', tripId], {
+          state: {
+            riderId: this.acceptedRide?.riderId,
+            amount: this.acceptedRide?.estimatedFare
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error completing trip:', err);
+        this.zone.run(() => {
+          this.errorMsg = err?.error?.message ?? 'Failed to complete trip.';
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
 
 }

@@ -1,0 +1,41 @@
+
+<div class="payment-container" *ngIf="loading">
+  <p>Loading payment details...</p>
+</div>
+
+<div class="payment-container" *ngIf="!loading && payment">
+
+  <h2>Payment for Trip {{ tripId }}</h2>
+
+  <div class="payment-details">
+    <p><strong>Rider ID:</strong> {{ riderId }}</p>
+    <p><strong>Driver ID:</strong> {{ driverId || 'Not available' }}</p>
+    <p><strong>Amount:</strong> ₹{{ amount }}</p>
+  </div>
+
+  <div class="payment-status">
+    <p>
+      <strong>Status:</strong>
+      <span [ngClass]="{
+        'status-pending': status === 'PENDING',
+        'status-processing': status === 'PROCESSING',
+        'status-succeeded': status === 'SUCCEEDED',
+        'status-failed': status === 'FAILED'
+      }">{{ status }}</span>
+    </p>
+  </div>
+
+  <div *ngIf="status === 'SUCCEEDED'" class="success">
+    <p>✅ Payment succeeded! Thank you.</p>
+    <button class="payment-done-btn" (click)="onPaymentDone()">Payment Done</button>
+  </div>
+
+  <div *ngIf="status === 'FAILED'" class="error">
+    <p>❌ Payment failed. Please try again.</p>
+  </div>
+
+</div>
+
+<div *ngIf="!loading && !payment">
+  <p>No payment information available.</p>
+</div>

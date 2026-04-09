@@ -43,6 +43,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/admin-users.component').then(m => m.AdminUsersComponent),
     canActivate: [authGuard, adminGuard]
   },
+  {path: 'payment/:tripId',
+  loadComponent: () =>
+    import('./pages/payments/payments.component')
+      .then(m => m.PaymentsComponent),
+  canActivate: [authGuard]
+  },
   { path: 'form', component: FormsComponent },
   { path: '**', redirectTo: 'dashboard' }
 ];

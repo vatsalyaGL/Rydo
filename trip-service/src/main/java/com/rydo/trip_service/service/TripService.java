@@ -81,7 +81,7 @@ public class TripService {
         }
 
         trip.setDriverId(dto.getDriverId());
-        trip.setStatus(TripStatus.MATCHED);
+        trip.setStatus(TripStatus.DRIVER_ARRIVING);
         trip.setMatchedAt(OffsetDateTime.now()); // ✅ good practice
 
         tripRepository.save(trip);
@@ -105,8 +105,7 @@ public class TripService {
         TripStatusResponseDTO response = new TripStatusResponseDTO();
         response.setTripId(trip.getId());
         response.setStatus(trip.getStatus().name());
-        if (trip.getStatus() == TripStatus.MATCHED) {
-            trip.setStatus(TripStatus.DRIVER_ARRIVING);
+        if (trip.getStatus() == TripStatus.DRIVER_ARRIVING) {
             response.setStatus(trip.getStatus().name());
             response.setDriverId(trip.getDriverId());
         }
@@ -114,6 +113,27 @@ public class TripService {
         return response;
     }
 
+    public void completeTrip(TripCompleteRequest tripCompleteRequest){
+        Trip trip = tripRepository.findById(tripCompleteRequest.getTripId())
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        trip.setStatus(TripStatus.COMPLETED);
+        trip.setMatchedAt(OffsetDateTime.now());
+        tripRepository.save(trip);
+    }
+
+    public TripCompleteResponse getCompleteStatus(TripCompleteRequest dto){
+        Trip trip = tripRepository.findById(dto.getTripId())
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        TripCompleteResponse response = new TripCompleteResponse();
+        response.setTripId(trip.getId());
+        response.setStatus(trip.getStatus().name());
+        if (trip.getStatus() == TripStatus.COMPLETED) {
+            response.setStatus(trip.getStatus().name());
+        }
+        return response;
+    }
     private int generateOtp() {
         return 1000 + new Random().nextInt(9000); // ensures 4-digit OTP
     }

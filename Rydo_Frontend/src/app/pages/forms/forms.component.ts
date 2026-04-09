@@ -469,28 +469,48 @@ private checkTripStatus(tripId: string) {
     this.trackingPollRef = setInterval(() => {
       const userId = this.auth.getUserId();
       const headers = new HttpHeaders(userId ? { 'X-User-Id': userId } : {});
-      this.http.get<any>(`http://localhost:8082/api/trips/${tripId}`, { headers })
+      
+      // Poll for trip completion status
+      this.http.post<any>(`http://localhost:8082/api/trips/get-complete`, { tripId }, { headers })
         .subscribe({
-          next: (trip) => {
+          next: (res) => {
             this.zone.run(() => {
-              const t = trip?.data ?? trip;
-              if (t.driverLat && t.driverLng) {
-                this.driverLat = t.driverLat;
-                this.driverLng = t.driverLng;
+              console.log('Completion status check:', res);
+              
+              // Check if trip is completed
+              if (res.status === 'COMPLETED') {
+                console.log('Trip completed! Redirecting to payment page...');
+                clearInterval(this.trackingPollRef);
+                this.trackingPollRef = null;
+                this.destroyTrackingMap();
+                
+                // Redirect to payment page
+                this.router.navigate(['/payment', tripId], {
+                  state: {
+                    riderId: userId,
+                    amount: this.bookedTrip?.estimatedFare || this.fare
+                  }
+                });
+              }
+              
+              // Still update driver location from the regular trip status
+              if (res.driverLat && res.driverLng) {
+                this.driverLat = res.driverLat;
+                this.driverLng = res.driverLng;
                 if (this.driverMarker) {
                   this.driverMarker.setLatLng([this.driverLat, this.driverLng]);
                   this.trackingMap?.panTo([this.driverLat, this.driverLng]);
                 }
               }
-              if (t.status === 'COMPLETED' || t.status === 'CANCELLED') {
-                clearInterval(this.trackingPollRef);
-              }
+              
               this.cdr.detectChanges();
             });
           },
-          error: () => {}
+          error: (err) => {
+            console.error('Error polling trip completion:', err);
+          }
         });
-    }, 6000);
+    }, 3000); // Poll every 3 seconds for completion status
   }
 
   cancelSearch() {
