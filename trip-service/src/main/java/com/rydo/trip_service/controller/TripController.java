@@ -68,6 +68,11 @@ public class TripController {
         TripCompleteResponse response = tripService.getCompleteStatus(dto);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/{tripId}")
+    public ResponseEntity<Trip> getTripById(@PathVariable UUID tripId) {
+        Trip trip = tripService.getTripById(tripId);
+        return ResponseEntity.ok(trip);
+    }
 //    @PostMapping("details")
 //    public ResponseEntity<TripDetails> getTripDetails(@Valid @RequestBody FetchTripDetails dto){
 //        TripDetails d =tripService.getTripDetails(dto);

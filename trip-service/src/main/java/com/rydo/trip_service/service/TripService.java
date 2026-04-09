@@ -154,6 +154,10 @@ public class TripService {
         dto.setVehicleType(trip.getVehicleType());
         return dto;
     }
+    public Trip getTripById(UUID tripId) {
+        return tripRepository.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+    }
 
     public TripCreateRequest convertToDto(Trip trip) {
         return modelMapper.map(trip, TripCreateRequest.class);
