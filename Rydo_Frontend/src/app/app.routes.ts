@@ -49,6 +49,11 @@ export const routes: Routes = [
       .then(m => m.PaymentsComponent),
   canActivate: [authGuard]
   },
+  {
+    path: 'rating/:tripId',
+    loadComponent: () => import('./pages/rating/rating.component').then(m => m.RatingComponent),
+    canActivate: [authGuard]
+  },
   { path: 'form', component: FormsComponent },
   { path: '**', redirectTo: 'dashboard' }
 ];

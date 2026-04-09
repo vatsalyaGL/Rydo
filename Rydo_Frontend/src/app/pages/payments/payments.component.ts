@@ -118,13 +118,13 @@ export class PaymentsComponent implements OnInit, OnDestroy {
   }
 
   onPaymentDone() {
-    console.log('Payment completed. Redirecting to dashboard...');
+    console.log('Payment completed. Redirecting to rating page...');
     // Clear the polling interval if still running
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
     }
-    // Redirect to dashboard or home page
-    this.router.navigate(['/dashboard']);
+    // Redirect to rating page instead of dashboard
+    this.router.navigate(['/rating', this.tripId]);
   }
 
   ngOnDestroy() {

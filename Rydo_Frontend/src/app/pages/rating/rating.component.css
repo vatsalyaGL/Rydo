@@ -1,0 +1,190 @@
+.rating-container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.rating-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.rating-header h2 {
+  color: #1f2937;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.rating-header p {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* Star Rating */
+.rating-stars {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.stars {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.star {
+  color: #d1d5db;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  margin: 0 2px;
+}
+
+.star.active {
+  color: #fbbf24;
+}
+
+.star:hover {
+  color: #fbbf24;
+}
+
+.rating-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Comment */
+.rating-comment {
+  margin-bottom: 30px;
+}
+
+.rating-comment label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.rating-comment textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.rating-comment textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Tags */
+.rating-tags {
+  margin-bottom: 40px;
+}
+
+.rating-tags label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.tags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.tag-btn {
+  padding: 8px 12px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.tag-btn:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.tag-btn.selected {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: white;
+}
+
+/* Actions */
+.rating-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.skip-btn, .submit-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.skip-btn {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.skip-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.submit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.skip-btn:disabled, .submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading */
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

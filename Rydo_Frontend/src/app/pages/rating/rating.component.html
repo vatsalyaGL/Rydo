@@ -1,0 +1,82 @@
+<div class="rating-container" *ngIf="!loading && ratingData">
+  <div class="rating-header">
+    <h2>Rate Your {{ ratingData.rateeRole === 'DRIVER' ? 'Driver' : 'Rider' }}</h2>
+    <p>How was your experience with {{ ratingData.rateeName }}?</p>
+  </div>
+
+  <!-- Star Rating -->
+  <div class="rating-stars">
+    <div class="stars">
+      <span
+        class="star"
+        [class.active]="score >= 1"
+        (click)="setScore(1)">★</span>
+      <span
+        class="star"
+        [class.active]="score >= 2"
+        (click)="setScore(2)">★</span>
+      <span
+        class="star"
+        [class.active]="score >= 3"
+        (click)="setScore(3)">★</span>
+      <span
+        class="star"
+        [class.active]="score >= 4"
+        (click)="setScore(4)">★</span>
+      <span
+        class="star"
+        [class.active]="score >= 5"
+        (click)="setScore(5)">★</span>
+    </div>
+    <div class="rating-label">
+      {{ score === 1 ? 'Poor' : score === 2 ? 'Fair' : score === 3 ? 'Good' : score === 4 ? 'Very Good' : 'Excellent' }}
+    </div>
+  </div>
+
+  <!-- Comment -->
+  <div class="rating-comment">
+    <label for="comment">Leave a comment (optional)</label>
+    <textarea
+      id="comment"
+      [(ngModel)]="comment"
+      placeholder="Share your experience..."
+      rows="3"
+      maxlength="500"></textarea>
+    <div class="char-count">{{ comment.length }}/500</div>
+  </div>
+
+  <!-- Tags -->
+  <div class="rating-tags">
+    <label>What stood out? (optional)</label>
+    <div class="tags-grid">
+      <button
+        *ngFor="let tag of availableTags"
+        class="tag-btn"
+        [class.selected]="selectedTags.includes(tag)"
+        (click)="toggleTag(tag)">
+        {{ tag }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="rating-actions">
+    <button
+      class="skip-btn"
+      (click)="skipRating()"
+      [disabled]="submitting">
+      Skip
+    </button>
+    <button
+      class="submit-btn"
+      (click)="submitRating()"
+      [disabled]="submitting">
+      {{ submitting ? 'Submitting...' : 'Submit Rating' }}
+    </button>
+  </div>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+  <div class="loading-spinner"></div>
+  <p>Loading rating details...</p>
+</div>
