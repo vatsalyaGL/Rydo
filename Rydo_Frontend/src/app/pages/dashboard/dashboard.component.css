@@ -101,7 +101,21 @@
   border: 1px solid var(--border);
   color: var(--text-secondary);
 }
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
+.clickable:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.view-more {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--accent);
+}
 .status-chip.pending { border-color: rgba(245,158,11,0.3); color: var(--warning); }
 .status-chip.verified { border-color: rgba(34,197,94,0.3); color: var(--success); }
 .status-chip.rejected { border-color: rgba(239,68,68,0.3); color: var(--danger); }

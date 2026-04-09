@@ -1,0 +1,55 @@
+<div class="rating-card">
+
+  <div class="rating-header">
+    <p class="rating-title">Rating Summary</p>
+    <p class="rating-subtitle">Your overall performance</p>
+  </div>
+
+  <ng-container *ngIf="!loading && !error && ratingSummary; else emptyTpl">
+
+    <div class="rating-cards">
+      <div class="avg-rating-card">
+        <div class="avg-label">Average Rating</div>
+        <div class="avg-value">
+          {{ ratingSummary.avgScore.toFixed(1) }} ⭐
+        </div>
+      </div>
+
+      <div class="count-card">
+        <div class="count-label">Total Ratings</div>
+        <div class="count-value">{{ ratingSummary.totalCount }}</div>
+      </div>
+    </div>
+
+    <!-- Distribution Section -->
+    <div class="distribution-section">
+      <h3 class="section-heading">Rating Distribution</h3>
+      <div class="distribution-list">
+        <div class="distribution-row" *ngFor="let entry of distributionEntries">
+          <span class="score-label">{{ entry[0] }} ⭐</span>
+          <span class="score-count">{{ entry[1] }} rating{{ entry[1] !== 1 ? 's' : '' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tags Section -->
+    <div class="tags-section">
+      <h3 class="section-heading">Top Tags</h3>
+      <div class="tags-list" *ngIf="ratingSummary.topTags.length > 0; else noTags">
+        <span class="tag-badge" *ngFor="let tag of ratingSummary.topTags">
+          {{ tag }}
+        </span>
+      </div>
+      <ng-template #noTags>
+        <div class="empty-state">No tags yet</div>
+      </ng-template>
+    </div>
+
+  </ng-container>
+
+  <ng-template #emptyTpl>
+    <p *ngIf="loading">Loading...</p>
+    <p *ngIf="error">Error loading ratings</p>
+  </ng-template>
+
+</div>
