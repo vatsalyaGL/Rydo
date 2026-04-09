@@ -3,7 +3,6 @@ package com.rydo.trip_service.service;
 import com.rydo.trip_service.dto.*;
 import com.rydo.trip_service.entity.Trip;
 import com.rydo.trip_service.enums.TripStatus;
-import com.rydo.trip_service.exception.TripNotFoundException;
 import com.rydo.trip_service.repository.TripRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,7 +122,7 @@ public class TripService {
         RiderDTO dto = new RiderDTO();
         dto.setTripId(trip.getId());
         dto.setRiderId(trip.getRiderId());
-        dto.setRiderName("Rider"); // Placeholder, could fetch from user service
+        dto.setRiderName("Rider"); // Placeholder, could fetch from user serviceS
         dto.setPickupLat(trip.getPickupLat());
         dto.setPickupLng(trip.getPickupLng());
         dto.setPickupAddress(trip.getPickupAddress());

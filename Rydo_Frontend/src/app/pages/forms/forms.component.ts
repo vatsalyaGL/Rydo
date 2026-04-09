@@ -23,6 +23,8 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
   trackingMap: any;
   sourceMarker: any;
   destMarker: any;
+  pickupMarker: any;
+  dropoffMarker: any;
   driverMarker: any;
   routePolyline: any;
 
@@ -95,16 +97,21 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
   }
 
   private clearTimers() {
-  if (this.searchTimerRef) {
-    clearInterval(this.searchTimerRef);
-    this.searchTimerRef = null;
-  }
+    if (this.searchTimerRef) {
+      clearInterval(this.searchTimerRef);
+      this.searchTimerRef = null;
+    }
 
-  if (this.pollIntervalRef) {
-    clearInterval(this.pollIntervalRef);
-    this.pollIntervalRef = null;
+    if (this.pollIntervalRef) {
+      clearInterval(this.pollIntervalRef);
+      this.pollIntervalRef = null;
+    }
+
+    if (this.trackingPollRef) {
+      clearInterval(this.trackingPollRef);
+      this.trackingPollRef = null;
+    }
   }
-}
 
   // ── Map init ─────────────────────────────────────────────────────────────
   initMap() {
@@ -114,25 +121,47 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     }).addTo(this.map);
   }
 
+  private destroyTrackingMap() {
+    if (this.trackingMap) {
+      this.trackingMap.remove();
+      this.trackingMap = null;
+      this.pickupMarker = null;
+      this.dropoffMarker = null;
+      this.driverMarker = null;
+    }
+  }
+
   initTrackingMap() {
     setTimeout(() => {
-      if (this.trackingMap) return;
-      this.trackingMap = L.map('tracking-map').setView(
-        [this.sourceLat || 13.0827, this.sourceLng || 80.2707], 14
-      );
+      this.destroyTrackingMap();
+
+      const pickupLat = this.sourceLat || this.acceptedTrip?.pickupLat || 13.0827;
+      const pickupLng = this.sourceLng || this.acceptedTrip?.pickupLng || 80.2707;
+      const dropoffLat = this.destLat || this.acceptedTrip?.dropoffLat || pickupLat;
+      const dropoffLng = this.destLng || this.acceptedTrip?.dropoffLng || pickupLng;
+
+      this.trackingMap = L.map('tracking-map').setView([pickupLat, pickupLng], 13);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(this.trackingMap);
 
-      // Place rider marker
-      L.marker([this.sourceLat, this.sourceLng], { icon: this.createIcon('green') })
-        .bindPopup('📍 Your Location').addTo(this.trackingMap);
+      this.pickupMarker = L.marker([pickupLat, pickupLng], { icon: this.createIcon('green') })
+        .bindPopup('📍 Pickup').addTo(this.trackingMap);
+      this.dropoffMarker = L.marker([dropoffLat, dropoffLng], { icon: this.createIcon('red') })
+        .bindPopup('🏁 Dropoff').addTo(this.trackingMap);
 
-      // Place driver marker (starts at rider location until real data arrives)
-      this.driverMarker = L.marker(
-        [this.driverLat || this.sourceLat, this.driverLng || this.sourceLng],
-        { icon: this.createCarIcon() }
-      ).bindPopup('🚗 Driver').addTo(this.trackingMap);
+      const driverLat = this.driverLat || pickupLat;
+      const driverLng = this.driverLng || pickupLng;
+      this.driverMarker = L.marker([driverLat, driverLng], { icon: this.createCarIcon() })
+        .bindPopup('🚗 Driver').addTo(this.trackingMap);
+
+      const bounds = L.latLngBounds([
+        [pickupLat, pickupLng],
+        [dropoffLat, dropoffLng],
+        [driverLat, driverLng]
+      ]);
+      this.trackingMap.fitBounds(bounds, { padding: [50, 50] });
+      this.trackingMap.invalidateSize();
     }, 300);
   }
 
@@ -414,10 +443,18 @@ private checkTripStatus(tripId: string) {
       next: (res: any) => {
         console.log('Poll response:', res);
         this.zone.run(() => {
-          if (res.status === 'MATCHED') {
-            console.log('Driver found:', res);
+          if (res.status === 'DRIVER_ARRIVING') {
+            console.log('Driver arriving:', res);
             this.clearTimers();
-            this.router.navigate(['/ride'], { state: res });
+            this.acceptedTrip = res;
+            this.viewState = 'tracking';
+            this.sourceLat = this.sourceLat || res.pickupLat;
+            this.sourceLng = this.sourceLng || res.pickupLng;
+            this.destLat = this.destLat || res.dropoffLat;
+            this.destLng = this.destLng || res.dropoffLng;
+            this.initTrackingMap();
+            this.startDriverTracking(tripId);
+            this.cdr.detectChanges();
           }
         });
       },

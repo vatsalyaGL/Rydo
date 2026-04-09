@@ -42,6 +42,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
   // Map
   map: any;
+  mapInitialized: boolean = false;
 
   constructor(
     private zone: NgZone,
@@ -59,7 +60,9 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.destroyMap();
+  }
 
   getDriverLocation(): Promise<boolean> {
     return new Promise((resolve) => {
@@ -132,7 +135,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
     // Start fetching location for map
     if (this.driverLat === 0 && this.driverLng === 0) {
-      this.getDriverLocation();
+      await this.getDriverLocation();
     }
 
     const headers = new HttpHeaders({
@@ -179,34 +182,48 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  private destroyMap() {
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+      this.mapInitialized = false;
+    }
+  }
+
   initAcceptedMap(rider: NearbyRider) {
     if (!L) return;
     const mapEl = document.getElementById('driver-accepted-map');
     if (!mapEl) return;
 
-    const map = L.map('driver-accepted-map').setView([rider.pickupLat, rider.pickupLng], 13);
+    this.destroyMap();
+
+    this.map = L.map('driver-accepted-map').setView([rider.pickupLat, rider.pickupLng], 13);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    }).addTo(this.map);
 
     // Driver position
     if (this.driverLat && this.driverLng) {
       L.marker([this.driverLat, this.driverLng], { icon: this.createCarIcon() })
-        .bindPopup('🚗 You').addTo(map);
+        .bindPopup('🚗 You').addTo(this.map);
     }
     // Pickup
     L.marker([rider.pickupLat, rider.pickupLng], { icon: this.createDotIcon('green') })
-      .bindPopup('📍 Pickup').addTo(map);
+      .bindPopup('📍 Pickup').addTo(this.map);
     // Dropoff
     L.marker([rider.dropoffLat, rider.dropoffLng], { icon: this.createDotIcon('red') })
-      .bindPopup('🏁 Dropoff').addTo(map);
+      .bindPopup('🏁 Dropoff').addTo(this.map);
 
     const bounds = L.latLngBounds([
       [rider.pickupLat, rider.pickupLng],
       [rider.dropoffLat, rider.dropoffLng]
     ]);
-    if (this.driverLat) bounds.extend([this.driverLat, this.driverLng]);
-    map.fitBounds(bounds, { padding: [50, 50] });
+    if (this.driverLat && this.driverLng) {
+      bounds.extend([this.driverLat, this.driverLng]);
+    }
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+    this.map.invalidateSize();
+    this.mapInitialized = true;
   }
 
   backToIdle() {
