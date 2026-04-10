@@ -112,14 +112,9 @@ export class AuthService {
     return role && role !== 'undefined' ? role : null;
   }
 
-  getVehicleType(): string | null {
-    const vt = typeof localStorage !== 'undefined' ? localStorage.getItem('vehicleType') : null;
-    return vt && vt !== 'undefined' ? vt : null;
-  }
-
-  getVehicleNumber(): string | null {
-    const vn = typeof localStorage !== 'undefined' ? localStorage.getItem('vehicleNumber') : null;
-    return vn && vn !== 'undefined' ? vn : null;
+  getVehicleType():string|null{
+    const role = typeof localStorage !== 'undefined' ? localStorage.getItem('selectedVehicleType') : null;
+    return role && role !== 'undefined' ? role : null;
   }
 
   isLoggedIn(): boolean {

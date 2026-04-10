@@ -15,6 +15,7 @@ export class AuthComponent {
   step: 'phone' | 'otp' = 'phone';
   phoneNumber = '';
   otp = '';
+  selectedVehicleType = 'ECONOMY'; // Default value
   loading = false;
   error = '';
   success = '';
@@ -23,6 +24,15 @@ export class AuthComponent {
     if (this.authService.isLoggedIn()) this.router.navigate(['/dashboard']);
   }
 
+
+  vehicleOptions = [
+    { value: 'ECONOMY', label: 'Economy (Mini)' },
+    { value: 'COMFORT', label: 'Comfort (Sedan)' },
+    { value: 'XL', label: 'XL (SUV)' },
+    { value: 'MOTO', label: 'Moto' },
+    { value: 'AUTO', label: 'Auto' }
+  ];
+  
   requestOtp() {
     if (!this.phoneNumber.trim()) { this.error = 'Please enter a phone number'; return; }
     this.loading = true;
