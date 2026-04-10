@@ -1,82 +1,202 @@
-.payment-container {
-  max-width: 420px;
-  margin: 40px auto;
+/* ── Container & Background ── */
+.payment-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top left, #f8fafc, #e2e8f0);
   padding: 20px;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
+.payment-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ── The Card ── */
 .payment-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-.info {
-  margin: 15px 0;
-  text-align: left;
+/* ── Header ── */
+.payment-header h2 {
+  margin: 12px 0 4px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
 }
 
-.qr-section img {
-  margin: 15px 0;
-  border-radius: 12px;
+.icon-badge {
+  width: 60px;
+  height: 60px;
+  background: #f1f5f9;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto;
 }
 
-.upi {
-  font-size: 12px;
-  color: gray;
-  word-break: break-all;
+.trip-id {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  background: #f8fafc;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
 }
 
-/* Spinner */
-.loading {
+/* ── Amount Display ── */
+.amount-section {
+  margin: 32px 0;
+  padding: 24px;
+  background: #f1f5f9;
+  border-radius: 24px;
+}
+
+.amount-section label {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.total-amount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #0f172a;
+}
+
+.currency {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: -10px;
+}
+
+.value {
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+/* ── Info Box ── */
+.payment-info-box {
+  margin-bottom: 32px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.info-row span { color: #64748b; }
+.info-row strong { color: #1e293b; }
+
+.status-pill {
+  color: #6366f1;
+  font-weight: 700;
+}
+
+/* ── Instructions ── */
+.instruction h3 {
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.instruction p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ── Payment Button ── */
+.payment-done-btn {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.driver-variant {
+  background: #0f172a; /* Dark Elegant Navy */
+  color: white;
+}
+
+.rider-variant {
+  background: #4f46e5; /* Indigo */
+  color: white;
+}
+
+.payment-done-btn span {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.payment-done-btn small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+.payment-done-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(79, 70, 229, 0.3);
+}
+
+/* ── Loading Spinner ── */
+.loading-state {
   text-align: center;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 5px solid #eee;
-  border-top: 5px solid #4f46e5;
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #4f46e5;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: auto;
+  animation: spin 1s infinite cubic-bezier(0.55, 0.15, 0.45, 0.85);
+  margin: 0 auto 16px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.secure-footer {
+  margin-top: 24px;
+  font-size: 0.7rem;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-.success {
-  color: green;
-  font-weight: bold;
-  margin-top: 20px;
+/* ── Animations ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.animate-in {
+  animation: slideUp 0.6s ease-out forwards;
 }
 
-.failed {
-  color: red;
-  font-weight: bold;
-  margin-top: 20px;
-}
-
-.payment-done-btn {
-  background-color: #10b981;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 15px;
-  width: 100%;
-  transition: background-color 0.3s ease;
-}
-
-.payment-done-btn:hover {
-  background-color: #059669;
-}
-
-.payment-done-btn:active {
-  transform: scale(0.98);
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -1,10 +1,15 @@
 <nav class="sidebar" [class.open]="mobileOpen">
-  <div class="sidebar-header">
+  <div 
+    class="sidebar-header" 
+    routerLink="/dashboard" 
+    (click)="mobileOpen = false" 
+    style="cursor: pointer;"
+  >
     <div class="logo">
       <span class="logo-icon">🚗</span>
       <span class="logo-text">Rydo</span>
     </div>
-    <button class="mobile-close" (click)="mobileOpen = false">✕</button>
+    <button class="mobile-close" (click)="$event.stopPropagation(); mobileOpen = false">✕</button>
   </div>
 
   <div class="sidebar-user" *ngIf="currentUser">

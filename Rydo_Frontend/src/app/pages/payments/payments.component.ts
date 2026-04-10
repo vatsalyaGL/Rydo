@@ -9,20 +9,19 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './payments.component.html',
-  styleUrls: ['./payments.component.css'] // ✅ fixed
+  styleUrls: ['./payments.component.css']
 })
 export class PaymentsComponent implements OnInit, OnDestroy {
 
   tripId!: string;
-
-  // 🔥 dynamic data
   riderId!: string;
-  driverId: string | null = null; // ✅ allow null
+  driverId: string | null = null;
   amount!: number;
-
-  payment: any;
+  currentRole: string = '';
   loading = true;
-  status: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED' = 'PENDING';
+  status: string = 'PENDING';
+  payment: any = null;
+  error = '';
 
   pollInterval: any;
 
@@ -30,47 +29,42 @@ export class PaymentsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
-    private authService: AuthService // ✅ renamed for clarity
+    private auth: AuthService
   ) {}
 
   ngOnInit() {
-    this.tripId = this.route.snapshot.paramMap.get('tripId')!;
+    this.tripId      = this.route.snapshot.paramMap.get('tripId')!;
+    this.currentRole = this.auth.getRole() ?? '';
+    this.driverId    = this.auth.getUserId();
 
-    // 🔥 GET DATA FROM NAVIGATION STATE
-    const nav = history.state;
-
+    const nav    = history.state;
     this.riderId = nav?.riderId;
-    this.amount = nav?.amount;
+    this.amount  = nav?.amount;
 
-    // ✅ get driver from auth
-    this.driverId = this.authService.getUserId();
-
-    // ⚠️ FALLBACK IF PAGE REFRESHED
+    // If state was lost on refresh, fetch trip to get amount
     if (!this.riderId || !this.amount) {
-      this.fetchTripDetails();   // 🔥 important
+      this.fetchTripDetails();
     } else {
-      this.createPayment();
+      this.loading = false;   // ← show page immediately, no payment creation needed
     }
   }
 
-  // 🔥 FETCH TRIP DATA IF STATE LOST
   fetchTripDetails() {
     this.http.get<any>(`http://localhost:8082/api/trips/${this.tripId}`)
       .subscribe({
         next: (res) => {
-          this.riderId = res.riderId;
-          this.amount = res.estimatedFare;
-          
-          this.createPayment();
+          this.riderId = res.riderId ?? res.rider?.id;
+          this.amount  = res.estimatedFare ?? res.finalFare ?? 0;
+          this.loading = false;
         },
         error: () => {
+          // Even if fetch fails, still show the page so driver can confirm
           this.loading = false;
         }
       });
   }
 
-
-  createPayment() {
+createPayment() {
     if (!this.driverId) {
       console.error('Driver ID is missing');
       this.loading = false;
@@ -117,19 +111,15 @@ export class PaymentsComponent implements OnInit, OnDestroy {
       });
   }
 
+
+  // Called by the confirm button
   onPaymentDone() {
-    console.log('Payment completed. Redirecting to rating page...');
-    // Clear the polling interval if still running
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-    }
-    // Redirect to rating page instead of dashboard
+    if (this.pollInterval) clearInterval(this.pollInterval);
+    console.log('✅ Navigating to rating for trip:', this.tripId);
     this.router.navigate(['/rating', this.tripId]);
   }
 
   ngOnDestroy() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-    }
+    if (this.pollInterval) clearInterval(this.pollInterval);
   }
 }
