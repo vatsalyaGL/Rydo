@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { AuthResponseDTO, RequestOtpDTO, VerifyOtpDTO } from '../models';
+import { AuthResponseDTO, RequestOtpDTO, VerifyOtpDTO, DriverResponseDTO } from '../models';
 import { UserService } from './user.service';
 
 @Injectable({ providedIn: 'root' })
@@ -12,6 +12,15 @@ export class AuthService {
 
   constructor(private http: HttpClient, private userService: UserService) {
     this.tokenSubject.next(this.getToken());
+  }
+
+  private userIdHeader(): HttpHeaders {
+    const userId = this.getUserId();
+    const headers: { [key: string]: string } = {};
+    if (userId && userId !== 'undefined' && userId !== 'null') {
+      headers['X-User-Id'] = userId;
+    }
+    return new HttpHeaders(headers);
   }
 
   requestOtp(phoneNumber: string): Observable<string> {
@@ -28,6 +37,16 @@ export class AuthService {
           }
           if (res.role) {
             localStorage.setItem('role', res.role);
+            if (res.role === 'DRIVER') {
+              this.http.get<DriverResponseDTO>('http://localhost:8081/api/v1/driver/me', { headers: this.userIdHeader() }).subscribe({
+                next: (profile: DriverResponseDTO) => {
+                  if (profile.vehicleType) {
+                    localStorage.setItem('vehicleType', profile.vehicleType);
+                  }
+                },
+                error: () => console.log('Failed to fetch driver profile')
+              });
+            }
           }
 
           if ((!res.userId || !res.role) && phoneNumber) {
@@ -38,6 +57,16 @@ export class AuthService {
                 }
                 if (!res.role && u.role) {
                   localStorage.setItem('role', u.role);
+                  if (u.role === 'DRIVER') {
+                    this.http.get<DriverResponseDTO>('http://localhost:8081/api/v1/driver/me', { headers: this.userIdHeader() }).subscribe({
+                      next: (profile: DriverResponseDTO) => {
+                        if (profile.vehicleType) {
+                          localStorage.setItem('vehicleType', profile.vehicleType);
+                        }
+                      },
+                      error: () => console.log('Failed to fetch driver profile')
+                    });
+                  }
                 }
               },
               error: () => console.log('Failed to fetch user by phone')

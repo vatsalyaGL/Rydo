@@ -14,6 +14,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'dashboard/ratings',
+    loadComponent: () =>
+      import('./pages/rating-summary/rating-summary.component')
+        .then(m => m.RatingSummaryComponent)
+  },
+  {
     path: 'profile',
     loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [authGuard]
@@ -42,6 +48,18 @@ export const routes: Routes = [
     path: 'admin/users',
     loadComponent: () => import('./pages/admin/admin-users.component').then(m => m.AdminUsersComponent),
     canActivate: [authGuard, adminGuard]
+  },
+  {
+    path: 'payment/:tripId',
+    loadComponent: () =>
+      import('./pages/payments/payments.component')
+        .then(m => m.PaymentsComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'rating/:tripId',
+    loadComponent: () => import('./pages/rating/rating.component').then(m => m.RatingComponent),
+    canActivate: [authGuard]
   },
   { path: 'form', component: FormsComponent },
   { path: '**', redirectTo: 'dashboard' }

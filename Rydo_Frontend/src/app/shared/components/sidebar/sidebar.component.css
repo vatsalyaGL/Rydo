@@ -18,6 +18,16 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+  border-radius: 8px; /* Optional: if you want a slight rounded hover effect */
+}
+
+.sidebar-header:hover {
+  background-color: rgba(0, 0, 0, 0.05); /* Subtle hover tint */
+}
+
+.sidebar-header:active {
+  transform: scale(0.98); /* Slight click feedback */
 }
 
 .logo {

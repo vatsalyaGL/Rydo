@@ -2,6 +2,7 @@ import { Component, AfterViewInit, NgZone, ChangeDetectorRef, OnDestroy } from '
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 let L: any;
 
@@ -41,12 +42,14 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
   // Map
   map: any;
+  mapInitialized: boolean = false;
 
   constructor(
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   async ngAfterViewInit() {
@@ -57,48 +60,84 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {}
-
-  getDriverLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.zone.run(() => {
-          this.driverLat = pos.coords.latitude;
-          this.driverLng = pos.coords.longitude;
-        });
-      },
-      (err) => console.warn('Geolocation error:', err.message)
-    );
+  ngOnDestroy() {
+    this.destroyMap();
   }
 
- getNearbyRiders() {
-  this.isFetching = true;
+  getDriverLocation(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(false);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.zone.run(() => {
+            this.driverLat = pos.coords.latitude;
+            this.driverLng = pos.coords.longitude;
+            resolve(true);
+          });
+        },
+        (err) => {
+          console.warn('Geolocation error:', err.message);
+          resolve(false);
+        }
+      );
+    });
+  }
 
-  const payload = {
-    driverLat: this.driverLat,
-    driverLon: this.driverLng,
-    vehicleType: 'ECONOMY'
-  };
+  async getNearbyRiders() {
+    this.isFetching = true;
 
-  this.http.post<any>(
-    `http://localhost:8082/api/trips/nearby`,
-    payload
-  ).subscribe({
-    next: (res) => {
-      this.nearbyRiders = Array.isArray(res) ? res : [];
-      this.viewState = 'list';
-      this.isFetching = false;
-    },
-    error: () => {
-      this.errorMsg = 'Failed to fetch nearby riders';
-      this.isFetching = false;
-    }
-  });
-}
-
-  acceptRide(rider: NearbyRider) {
     const userId = this.auth.getUserId();
+    if (!userId) {
+      this.errorMsg = 'User not logged in';
+      this.isFetching = false;
+      return;
+    }
+
+    // Ensure location is fetched
+    if (this.driverLat === 0 && this.driverLng === 0) {
+      await this.getDriverLocation();
+    }
+
+    const vehicleType = this.auth.getVehicleType() || 'ECONOMY';
+    
+    const payload = {
+      driverId: userId,
+      driverLat: this.driverLat,
+      driverLon: this.driverLng,
+      vehicleType: vehicleType,
+    };
+
+    this.http.post<any>(
+      `http://localhost:8082/api/trips/nearby`,
+      payload
+    ).subscribe({
+      next: (res) => {
+        this.nearbyRiders = Array.isArray(res) ? res : [];
+        this.viewState = 'list';
+        this.isFetching = false;
+      },
+      error: () => {
+        this.errorMsg = 'Failed to fetch nearby riders';
+        this.isFetching = false;
+      }
+    });
+  }
+
+  async acceptRide(rider: NearbyRider) {
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.errorMsg = 'User not logged in';
+      return;
+    }
+
+    // Start fetching location for map
+    if (this.driverLat === 0 && this.driverLng === 0) {
+      await this.getDriverLocation();
+    }
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       ...(userId ? { 'X-User-Id': userId } : {})
@@ -106,16 +145,17 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
     const payload = {
       driverId: userId,
-      driverLat: this.driverLat,
-      driverLng: this.driverLng
+      tripId: rider.tripId
     };
 
-    this.http.put<any>(
-      `http://localhost:8082/api/trips/${rider.tripId}/accept`,
+    console.log('Accepting ride with payload:', payload);
+    this.http.post<any>(
+      `http://localhost:8082/api/trips/accept-ride`,
       payload,
       { headers }
     ).subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('Accept ride success:', res);
         this.zone.run(() => {
           this.acceptedRide = rider;
           this.viewState = 'accepted';
@@ -124,6 +164,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
         });
       },
       error: (err) => {
+        console.log('Accept ride error:', err);
         this.zone.run(() => {
           this.errorMsg = err?.error?.message ?? 'Failed to accept ride.';
           this.cdr.detectChanges();
@@ -141,34 +182,48 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  private destroyMap() {
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+      this.mapInitialized = false;
+    }
+  }
+
   initAcceptedMap(rider: NearbyRider) {
     if (!L) return;
     const mapEl = document.getElementById('driver-accepted-map');
     if (!mapEl) return;
 
-    const map = L.map('driver-accepted-map').setView([rider.pickupLat, rider.pickupLng], 13);
+    this.destroyMap();
+
+    this.map = L.map('driver-accepted-map').setView([rider.pickupLat, rider.pickupLng], 13);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    }).addTo(this.map);
 
     // Driver position
     if (this.driverLat && this.driverLng) {
       L.marker([this.driverLat, this.driverLng], { icon: this.createCarIcon() })
-        .bindPopup('🚗 You').addTo(map);
+        .bindPopup('🚗 You').addTo(this.map);
     }
     // Pickup
     L.marker([rider.pickupLat, rider.pickupLng], { icon: this.createDotIcon('green') })
-      .bindPopup('📍 Pickup').addTo(map);
+      .bindPopup('📍 Pickup').addTo(this.map);
     // Dropoff
     L.marker([rider.dropoffLat, rider.dropoffLng], { icon: this.createDotIcon('red') })
-      .bindPopup('🏁 Dropoff').addTo(map);
+      .bindPopup('🏁 Dropoff').addTo(this.map);
 
     const bounds = L.latLngBounds([
       [rider.pickupLat, rider.pickupLng],
       [rider.dropoffLat, rider.dropoffLng]
     ]);
-    if (this.driverLat) bounds.extend([this.driverLat, this.driverLng]);
-    map.fitBounds(bounds, { padding: [50, 50] });
+    if (this.driverLat && this.driverLng) {
+      bounds.extend([this.driverLat, this.driverLng]);
+    }
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+    this.map.invalidateSize();
+    this.mapInitialized = true;
   }
 
   backToIdle() {
@@ -202,4 +257,46 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     };
     return icons[type] ?? '🚗';
   }
+
+  completeTrip() {
+    if (!this.acceptedRide) return;
+
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.errorMsg = 'User not logged in';
+      return;
+    }
+
+    const tripId = this.acceptedRide.tripId;
+    const payload = {
+      tripId: tripId,
+      driverId: userId
+    };
+
+    // Call the complete-status API
+    this.http.put<any>(
+      `http://localhost:8082/api/trips/complete-status`,
+      payload
+    ).subscribe({
+      next: (res) => {
+        console.log('Trip completed successfully:', res);
+        // Navigate to payment page after successful API call
+        this.router.navigate(['/payment', tripId], {
+          state: {
+            riderId: this.acceptedRide?.riderId,
+            amount: this.acceptedRide?.estimatedFare
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error completing trip:', err);
+        this.zone.run(() => {
+          this.errorMsg = err?.error?.message ?? 'Failed to complete trip.';
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+
 }

@@ -1,8 +1,6 @@
 package com.rydo.trip_service.controller;
 
-import com.rydo.trip_service.dto.DriverDTO;
-import com.rydo.trip_service.dto.RiderDTO;
-import com.rydo.trip_service.dto.TripCreateRequest;
+import com.rydo.trip_service.dto.*;
 import com.rydo.trip_service.service.TripService;
 import com.rydo.trip_service.entity.Trip;
 import jakarta.validation.Valid;
@@ -12,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -41,4 +40,42 @@ public class TripController {
         List<RiderDTO> riders = tripService.getNearbyRiders(dto);
         return ResponseEntity.ok(riders);
     }
+
+    @PostMapping("accept-ride")
+    public ResponseEntity<TripAcceptResponseDTO> acceptRide(
+            @Valid @RequestBody TripAcceptDTO dto) {
+
+        TripAcceptResponseDTO response = tripService.acceptRide(dto);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/status")
+    public ResponseEntity<TripStatusResponseDTO> getTripStatus(@Valid @RequestBody TripStatusRequest dto) {
+
+        TripStatusResponseDTO response = tripService.getTripStatus(dto);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/complete-status")
+    public void completeRide(@Valid @RequestBody TripCompleteRequest dto){
+        tripService.completeTrip(dto);
+    }
+
+    @PostMapping("/get-complete")
+    public ResponseEntity<TripCompleteResponse> getTripCompleteStatus(@Valid @RequestBody TripCompleteRequest dto ){
+        TripCompleteResponse response = tripService.getCompleteStatus(dto);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/{tripId}")
+    public ResponseEntity<Trip> getTripById(@PathVariable UUID tripId) {
+        Trip trip = tripService.getTripById(tripId);
+        return ResponseEntity.ok(trip);
+    }
+//    @PostMapping("details")
+//    public ResponseEntity<TripDetails> getTripDetails(@Valid @RequestBody FetchTripDetails dto){
+//        TripDetails d =tripService.getTripDetails(dto);
+//        return new ResponseEntity<>(d, HttpStatus.FOUND);
+//    }
 }

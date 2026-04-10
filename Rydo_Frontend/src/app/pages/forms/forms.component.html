@@ -209,7 +209,7 @@
           <span class="step-dot">●</span> Driver Assigned
         </div>
         <div class="status-line"></div>
-        <div class="status-step" [class.active]="acceptedTrip?.status === 'ARRIVED'">
+        <div class="status-step" [class.active]="acceptedTrip?.status === 'DRIVER_ARRIVING' || acceptedTrip?.status === 'ARRIVED'">
           <span class="step-dot">●</span> Driver Arriving
         </div>
         <div class="status-line"></div>
@@ -219,7 +219,7 @@
       </div>
 
       <!-- Tracking Map -->
-      <div class="map-label">📍 Live Driver Location</div>
+      <div class="map-label">📍 Live Driver Location + Pickup / Dropoff</div>
       <div id="tracking-map"></div>
 
       <!-- Trip details -->

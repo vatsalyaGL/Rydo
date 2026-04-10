@@ -1,0 +1,62 @@
+<div class="payment-wrapper">
+  <div class="payment-container loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Securing trip details...</p>
+  </div>
+
+  <div class="payment-container" *ngIf="!loading">
+    <div class="payment-card animate-in">
+      
+      <div class="payment-header">
+        <div class="icon-badge">💳</div>
+        <h2>Trip Payment</h2>
+        <span class="trip-id">ID: {{ tripId | slice:0:8 }}</span>
+      </div>
+
+      <div class="amount-section">
+        <label>Total Amount</label>
+        <div class="total-amount">
+          <span class="currency">₹</span>
+          <span class="value">{{ amount ? (amount | number:'1.2-2') : '0.00' }}</span>
+        </div>
+      </div>
+
+      <div class="payment-info-box">
+        <div class="info-row">
+          <span>Service</span>
+          <strong>Ride Services</strong>
+        </div>
+        <div class="info-row">
+          <span>Status</span>
+          <span class="status-pill">Awaiting Payment</span>
+        </div>
+      </div>
+
+      <div class="action-area">
+        <div class="confirm-box" *ngIf="currentRole === 'DRIVER'">
+          <div class="instruction">
+            <h3>Collect Payment</h3>
+            <p>Please confirm once you have received the cash or UPI transfer from the rider.</p>
+          </div>
+          <button class="payment-done-btn driver-variant" (click)="onPaymentDone()">
+            <span>Confirm Receipt</span>
+            <small>Next: Rate Rider</small>
+          </button>
+        </div>
+
+        <div class="confirm-box" *ngIf="currentRole !== 'DRIVER'">
+          <div class="instruction">
+            <h3>Payment Method</h3>
+            <p>Pay via Cash or scan the Driver's UPI QR code. Tap below once done.</p>
+          </div>
+          <button class="payment-done-btn rider-variant" (click)="onPaymentDone()">
+            <span>I have Paid</span>
+            <small>Next: Rate Driver</small>
+          </button>
+        </div>
+      </div>
+
+      <p class="secure-footer">🛡️ Secure Peer-to-Peer Payment</p>
+    </div>
+  </div>
+</div>
