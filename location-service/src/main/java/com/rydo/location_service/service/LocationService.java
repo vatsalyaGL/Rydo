@@ -30,12 +30,12 @@ public class LocationService {
             repository.save(loc);
         }
 
-        public LocationUpdateDTO fetchDriverLocation(LocationRequestDTO dto ){
-            DriverLocation d = repository.findById(dto.getDriverId()).orElseThrow(() -> new DriverNotFoundException("Driver not found"));
-            return  new LocationUpdateDTO(
-                    dto.getDriverId(),
-                    d.getLastLocation().getY(),
-                    d.getLastLocation().getX()
-            );
-        }
+    public LocationUpdateDTO fetchDriverLocation(UUID driverId){
+        DriverLocation d = repository.findById(driverId).orElseThrow(() -> new DriverNotFoundException("Driver not found"));
+        return  new LocationUpdateDTO(
+                driverId,
+                d.getLastLocation().getY(),
+                d.getLastLocation().getX()
+        );
+    }
 }
