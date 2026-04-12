@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/trips")
 public class TripController {
@@ -48,6 +49,19 @@ public class TripController {
         TripAcceptResponseDTO response = tripService.acceptRide(dto);
 
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("start-ride")
+    public ResponseEntity<StartRideDTO> startRide(@Valid @RequestBody TripAcceptDTO dto){
+        StartRideDTO res = tripService.startRide(dto);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+    @PostMapping("cancel-ride")
+    public ResponseEntity<?> cancelTrip(@Valid @RequestBody TripCancelRequest dto){
+        Trip savedTrip = tripService.cancelTrip(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "trip_id", savedTrip.getId(),
+                "status", savedTrip.getStatus()
+        ));
     }
 
     @PostMapping("/status")

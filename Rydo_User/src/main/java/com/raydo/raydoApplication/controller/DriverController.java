@@ -32,9 +32,7 @@ public class DriverController {
     public ResponseEntity<DriverResponseDTO> getMyProfile(
             @RequestHeader("X-User-Id") UUID userId
     ) {
-
         DriverResponseDTO response = driverService.getDriverProfile(userId);
-
         return ResponseEntity.ok(response);
     }
 

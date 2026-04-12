@@ -205,11 +205,11 @@
 
       <!-- Live status bar -->
       <div class="status-bar">
-        <div class="status-step active">
+        <div class="status-step" [class.active]="['MATCHED', 'DRIVER_ARRIVING', 'IN_PROGRESS'].includes(acceptedTrip?.status)">
           <span class="step-dot">●</span> Driver Assigned
         </div>
         <div class="status-line"></div>
-        <div class="status-step" [class.active]="acceptedTrip?.status === 'DRIVER_ARRIVING' || acceptedTrip?.status === 'ARRIVED'">
+        <div class="status-step" [class.active]="['DRIVER_ARRIVING', 'IN_PROGRESS'].includes(acceptedTrip?.status)">
           <span class="step-dot">●</span> Driver Arriving
         </div>
         <div class="status-line"></div>

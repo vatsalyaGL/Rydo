@@ -42,6 +42,7 @@ export class AuthService {
                 next: (profile: DriverResponseDTO) => {
                   if (profile.vehicleType) {
                     localStorage.setItem('vehicleType', profile.vehicleType);
+                    console.log(profile.vehicleType);
                   }
                 },
                 error: () => console.log('Failed to fetch driver profile')
@@ -113,7 +114,7 @@ export class AuthService {
   }
 
   getVehicleType():string|null{
-    const role = typeof localStorage !== 'undefined' ? localStorage.getItem('selectedVehicleType') : null;
+    const role = typeof localStorage !== 'undefined' ? localStorage.getItem('vehicleType') : null;
     return role && role !== 'undefined' ? role : null;
   }
 

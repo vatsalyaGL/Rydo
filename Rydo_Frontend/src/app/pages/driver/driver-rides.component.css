@@ -147,6 +147,72 @@
 }
 .back-btn:hover { border-color: #6366f1; color: #6366f1; }
 
+/* ── Start Ride Button ──────────────────── */
+.start-ride-btn {
+  display: block; width: 100%; padding: 16px 20px;
+  background: linear-gradient(135deg, #22c55e, #16a34a); color: white;
+  border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; margin: 16px 0;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+.start-ride-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4); }
+.start-ride-btn:active { transform: translateY(0); }
+
+/* ── Complete Trip Button ───────────────── */
+.complete-trip-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #0f172a, #1e3a5f);
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  margin-top: 16px;
+}
+.complete-trip-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+.complete-trip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Location Control ───────────────────── */
+.location-control {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.location-status {
+  font-size: 0.88rem;
+  color: #475569;
+}
+.location-status strong { color: #1e293b; }
+.stop-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #fca5a5;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.stop-btn:hover { background: #fee2e2; }
 
 /* ── Accepted Screen ────────────────────── */
 .accepted-screen { display: flex; flex-direction: column; gap: 16px; }
@@ -156,9 +222,15 @@
   background: #f0fdf4; border: 2px solid #86efac;
   border-radius: 50px; padding: 14px 20px; width: fit-content; margin: 0 auto;
 }
+.accepted-badge.in-ride {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
 .accepted-check { font-size: 1.6rem; }
 .accepted-title { font-weight: 700; font-size: 1rem; color: #15803d; }
+.accepted-badge.in-ride .accepted-title { color: #1d4ed8; }
 .accepted-sub   { font-size: 0.82rem; color: #4ade80; }
+.accepted-badge.in-ride .accepted-sub { color: #60a5fa; }
 
 .accepted-card {
   background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 16px 20px;
@@ -187,22 +259,4 @@
 #driver-accepted-map {
   width: 100%; height: 300px; border-radius: 16px;
   overflow: hidden; border: 1.5px solid #e2e8f0;
-}
-
-.complete-trip-btn {
-width: 100%;
-padding: 14px;
-background: linear-gradient(135deg, #22c55e, #15803d);
-color: white;
-font-size: 15px;
-font-weight: 700;
-border: none;
-border-radius: 12px;
-cursor: pointer;
-transition: 0.25s;
-}
-
-.complete-trip-btn:hover {
-transform: scale(1.02);
-box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
