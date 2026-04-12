@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URLS } from '../core/api.config';
 
 
 export interface RatingSummaryDTO {
@@ -25,7 +26,7 @@ export class RatingService {
   constructor(private http: HttpClient) {}
 
   getRatingSummary(rateeId: string): Observable<any> {
-  return this.http.get(`http://localhost:8010/api/v1/ratings/user/${rateeId}`);
+  return this.http.get(API_URLS.RATINGS_BY_USER(rateeId));
 }
 
 }

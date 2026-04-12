@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { API_URLS } from '../../core/api.config';
 
 let L: any;
 
@@ -124,7 +125,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     };
 
     this.http.post<any>(
-      `http://localhost:8082/api/trips/nearby`,
+      API_URLS.TRIPS_NEARBY,
       payload
     ).subscribe({
       next: (res) => {
@@ -162,7 +163,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
 
     console.log('Accepting ride with payload:', payload);
     this.http.post<any>(
-      `http://localhost:8082/api/trips/accept-ride`,
+      API_URLS.TRIPS_ACCEPT,
       payload,
       { headers }
     ).subscribe({
@@ -181,7 +182,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
             longitude: this.driverLng
           };
           this.http.post<any>(
-            `http://localhost:8083/api/v1/location/update`,
+            API_URLS.LOCATION_UPDATE,
             locationPayload,
             { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
           ).subscribe({
@@ -223,7 +224,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     };
 
     this.http.post<any>(
-      `http://localhost:8082/api/trips/start-ride`,
+      API_URLS.TRIPS_START,
       payload
     ).subscribe({
       next: (res) => {
@@ -261,7 +262,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     };
 
     this.http.put<any>(
-      `http://localhost:8082/api/trips/complete-status`,
+      API_URLS.TRIPS_COMPLETE,
       payload
     ).subscribe({
       next: (res) => {
@@ -393,7 +394,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     this.stopDriverAnimation();
 
     this.http.post<any>(
-      `http://localhost:8082/api/trips/cancel-ride`,
+      API_URLS.TRIPS_CANCEL_RIDE,
       payload,
       { headers }
     ).subscribe({
@@ -493,7 +494,7 @@ export class DriverRidesComponent implements AfterViewInit, OnDestroy {
     };
 
     this.http.post<any>(
-      `http://localhost:8083/api/v1/location/update`,
+      API_URLS.LOCATION_UPDATE,
       payload,
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) }
     ).subscribe({

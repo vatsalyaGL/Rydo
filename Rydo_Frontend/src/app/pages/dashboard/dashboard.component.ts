@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { DriverService } from '../../services/driver.service';
 import { UserResponseDTO, DriverResponseDTO } from '../../models';
+import { API_URLS } from '../../core/api.config';
 
 @Component({
   selector: 'app-dashboard',
@@ -87,7 +88,7 @@ export class DashboardComponent implements OnInit {
 }
 
   fetchUserRating(userId: string) {
-  this.http.get<any>(`http://localhost:8010/api/v1/ratings/user/${userId}`)
+  this.http.get<any>(API_URLS.RATINGS_BY_USER(userId))
     .subscribe({
       next: (rating) => {
         this.userRating = {

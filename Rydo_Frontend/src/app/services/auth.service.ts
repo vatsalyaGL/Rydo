@@ -3,10 +3,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { AuthResponseDTO, RequestOtpDTO, VerifyOtpDTO, DriverResponseDTO } from '../models';
 import { UserService } from './user.service';
+import { API_URLS } from '../core/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly BASE = 'http://localhost:8081/api/v1/auth';
+  private readonly BASE = API_URLS.AUTH_BASE;
   private tokenSubject = new BehaviorSubject<string | null>(null);
   token$ = this.tokenSubject.asObservable();
 
@@ -38,7 +39,7 @@ export class AuthService {
           if (res.role) {
             localStorage.setItem('role', res.role);
             if (res.role === 'DRIVER') {
-              this.http.get<DriverResponseDTO>('http://localhost:8081/api/v1/driver/me', { headers: this.userIdHeader() }).subscribe({
+              this.http.get<DriverResponseDTO>(API_URLS.DRIVER_ME, { headers: this.userIdHeader() }).subscribe({
                 next: (profile: DriverResponseDTO) => {
                   if (profile.vehicleType) {
                     localStorage.setItem('vehicleType', profile.vehicleType);
@@ -59,7 +60,7 @@ export class AuthService {
                 if (!res.role && u.role) {
                   localStorage.setItem('role', u.role);
                   if (u.role === 'DRIVER') {
-                    this.http.get<DriverResponseDTO>('http://localhost:8081/api/v1/driver/me', { headers: this.userIdHeader() }).subscribe({
+                    this.http.get<DriverResponseDTO>(API_URLS.DRIVER_ME, { headers: this.userIdHeader() }).subscribe({
                       next: (profile: DriverResponseDTO) => {
                         if (profile.vehicleType) {
                           localStorage.setItem('vehicleType', profile.vehicleType);

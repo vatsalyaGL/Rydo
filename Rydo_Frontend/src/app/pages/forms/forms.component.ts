@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { API_URLS } from '../../core/api.config';
 
 let L: any;
 
@@ -160,7 +161,7 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       const userId = this.auth.getUserId();
       const headers = new HttpHeaders(userId ? { 'X-User-Id': userId } : {});
 
-      this.http.get<any>(`http://localhost:8083/api/v1/location/driver/${driverId}`, { headers })
+      this.http.get<any>(API_URLS.LOCATION_DRIVER(driverId), { headers })
         .subscribe({
           next: (response) => {
             this.zone.run(() => {
@@ -404,7 +405,7 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       ...(userId ? { 'X-User-Id': userId } : {})
     });
 
-    this.http.post('http://localhost:8082/api/trips', payload, { headers })
+    this.http.post(API_URLS.TRIPS_BASE, payload, { headers })
       .subscribe({
         next: (response: any) => {
           console.log('✅ Booking success:', response);
@@ -459,7 +460,7 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       ...(userId ? { 'X-User-Id': userId } : {})
     });
 
-    this.http.post<any>(`http://localhost:8082/api/trips/status`, { tripId }, { headers })
+    this.http.post<any>(API_URLS.TRIPS_STATUS, { tripId }, { headers })
       .subscribe({
         next: (res: any) => {
           this.zone.run(() => {
@@ -494,7 +495,7 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       const userId = this.auth.getUserId();
       const headers = new HttpHeaders(userId ? { 'X-User-Id': userId } : {});
 
-      this.http.get<any>(`http://localhost:8083/api/v1/location/driver/${driverId}`, { headers })
+      this.http.get<any>(API_URLS.LOCATION_DRIVER(driverId), { headers })
         .subscribe({
           next: (response) => {
             this.zone.run(() => {
@@ -534,7 +535,7 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
         ...(userId ? { 'X-User-Id': userId } : {})
       });
 
-      this.http.post<any>(`http://localhost:8082/api/trips/get-complete`, { tripId }, { headers })
+      this.http.post<any>(API_URLS.TRIPS_GET_COMPLETE, { tripId }, { headers })
         .subscribe({
           next: (res) => {
             this.zone.run(() => {
@@ -643,7 +644,7 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
         'Content-Type': 'application/json',
         ...(userId ? { 'X-User-Id': userId } : {})
       });
-      this.http.put(`http://localhost:8082/api/trips/${tripId}/cancel`, {}, { headers }).subscribe({ error: () => {} });
+      this.http.put(API_URLS.TRIPS_BASE + `/${tripId}/cancel`, {}, { headers }).subscribe({ error: () => {} });
     }
 
     this.cdr.detectChanges();

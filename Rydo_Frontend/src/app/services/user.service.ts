@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UserResponseDTO, UserCreateDTO, UserUpdateDTO } from '../models';
+import { API_URLS } from '../core/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private readonly BASE = 'http://localhost:8081/api/v1/users';
+  private readonly BASE = API_URLS.USERS_BASE;
 
   constructor(private http: HttpClient) {}
 
