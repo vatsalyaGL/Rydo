@@ -3,11 +3,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DriverApplyDTO, DriverResponseDTO } from '../models';
 import { AuthService } from './auth.service';
+import { API_URLS } from '../core/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class DriverService {
-  private readonly BASE = 'http://localhost:8081/api/v1/driver';
-  private readonly ADMIN = 'http://localhost:8081/api/admin';
+  private readonly BASE = API_URLS.DRIVER_BASE;
+  private readonly ADMIN = API_URLS.ADMIN_BASE;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 

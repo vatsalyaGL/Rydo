@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { API_URLS } from '../../core/api.config';
 
 let L: any;
 
@@ -23,8 +24,6 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
   trackingMap: any;
   sourceMarker: any;
   destMarker: any;
-  pickupMarker: any;
-  dropoffMarker: any;
   driverMarker: any;
   routePolyline: any;
 
@@ -53,6 +52,9 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
   driverLat: number = 0;
   driverLng: number = 0;
   trackingPollRef: any = null;
+  completionPollRef: any = null;
+  driverArriving: boolean = false;
+  driverArrivingTimeoutRef: any = null;
 
   // ── Fare/distance ────────────────────────────────────────────────────────
   distance: number = 0;
@@ -101,15 +103,21 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       clearInterval(this.searchTimerRef);
       this.searchTimerRef = null;
     }
-
     if (this.pollIntervalRef) {
       clearInterval(this.pollIntervalRef);
       this.pollIntervalRef = null;
     }
-
     if (this.trackingPollRef) {
       clearInterval(this.trackingPollRef);
       this.trackingPollRef = null;
+    }
+    if (this.completionPollRef) {
+      clearInterval(this.completionPollRef);
+      this.completionPollRef = null;
+    }
+    if (this.driverArrivingTimeoutRef) {
+      clearTimeout(this.driverArrivingTimeoutRef);
+      this.driverArrivingTimeoutRef = null;
     }
   }
 
@@ -125,8 +133,6 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     if (this.trackingMap) {
       this.trackingMap.remove();
       this.trackingMap = null;
-      this.pickupMarker = null;
-      this.dropoffMarker = null;
       this.driverMarker = null;
     }
   }
@@ -140,28 +146,62 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       const dropoffLat = this.destLat || this.acceptedTrip?.dropoffLat || pickupLat;
       const dropoffLng = this.destLng || this.acceptedTrip?.dropoffLng || pickupLng;
 
-      this.trackingMap = L.map('tracking-map').setView([pickupLat, pickupLng], 13);
+      this.trackingMap = L.map('tracking-map').setView([pickupLat, pickupLng], 14);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(this.trackingMap);
 
-      this.pickupMarker = L.marker([pickupLat, pickupLng], { icon: this.createIcon('green') })
+      L.marker([pickupLat, pickupLng], { icon: this.createIcon('green') })
         .bindPopup('📍 Pickup').addTo(this.trackingMap);
-      this.dropoffMarker = L.marker([dropoffLat, dropoffLng], { icon: this.createIcon('red') })
-        .bindPopup('🏁 Dropoff').addTo(this.trackingMap);
+      L.marker([dropoffLat, dropoffLng], { icon: this.createIcon('red') })
+        .bindPopup('🏁 Destination').addTo(this.trackingMap);
 
-      const driverLat = this.driverLat || pickupLat;
-      const driverLng = this.driverLng || pickupLng;
-      this.driverMarker = L.marker([driverLat, driverLng], { icon: this.createCarIcon() })
-        .bindPopup('🚗 Driver').addTo(this.trackingMap);
+      // Fetch driver location from API
+      const driverId = this.acceptedTrip?.driverId ?? this.acceptedTrip?.DriverId;
+      const userId = this.auth.getUserId();
+      const headers = new HttpHeaders(userId ? { 'X-User-Id': userId } : {});
 
-      const bounds = L.latLngBounds([
-        [pickupLat, pickupLng],
-        [dropoffLat, dropoffLng],
-        [driverLat, driverLng]
-      ]);
-      this.trackingMap.fitBounds(bounds, { padding: [50, 50] });
-      this.trackingMap.invalidateSize();
+      this.http.get<any>(API_URLS.LOCATION_DRIVER(driverId), { headers })
+        .subscribe({
+          next: (response) => {
+            this.zone.run(() => {
+              const data = response?.data ?? response;
+              if (data.latitude && data.longitude) {
+                this.driverLat = data.latitude;
+                this.driverLng = data.longitude;
+                this.driverMarker = L.marker([this.driverLat, this.driverLng], { icon: this.createCarIcon() })
+                  .bindPopup('🚗 Driver').addTo(this.trackingMap);
+
+                // Draw route from driver position to destination
+                this.drawRouteToDestination();
+
+                const bounds = L.latLngBounds([
+                  [pickupLat, pickupLng],
+                  [dropoffLat, dropoffLng],
+                  [this.driverLat, this.driverLng]
+                ]);
+                this.trackingMap.fitBounds(bounds, { padding: [50, 50] });
+                this.trackingMap.invalidateSize();
+              }
+            });
+          },
+          error: (err) => {
+            console.error('Error fetching initial driver location:', err);
+            // Fallback: place marker at pickup location
+            this.driverLat = pickupLat;
+            this.driverLng = pickupLng;
+            this.driverMarker = L.marker([this.driverLat, this.driverLng], { icon: this.createCarIcon() })
+              .bindPopup('🚗 Driver').addTo(this.trackingMap);
+
+            const bounds = L.latLngBounds([
+              [pickupLat, pickupLng],
+              [dropoffLat, dropoffLng],
+              [this.driverLat, this.driverLng]
+            ]);
+            this.trackingMap.fitBounds(bounds, { padding: [50, 50] });
+            this.trackingMap.invalidateSize();
+          }
+        });
     }, 300);
   }
 
@@ -343,17 +383,15 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  // ── Book Ride → triggers searching state ──────────────────────────────
+  // ── Book Ride ─────────────────────────────────────────────────────────
   bookRide() {
     console.log('📍 bookRide() called');
     if (!this.auth.getUserId()) {
       this.bookingError = 'You must be logged in to book a ride.';
-      console.error('❌ User not logged in');
       return;
     }
     if (this.distance === 0 || !this.destAddress) {
       this.bookingError = 'Please select a destination first.';
-      console.error('❌ No destination selected');
       return;
     }
 
@@ -361,23 +399,19 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
     this.isBooking = true;
 
     const payload = this.buildPayload();
-    console.log('📤 Sending booking payload:', payload);
-    
     const userId = this.auth.getUserId();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       ...(userId ? { 'X-User-Id': userId } : {})
     });
 
-    this.http.post('http://localhost:8082/api/trips', payload, { headers })
+    this.http.post(API_URLS.TRIPS_BASE, payload, { headers })
       .subscribe({
         next: (response: any) => {
           console.log('✅ Booking success:', response);
           this.zone.run(() => {
             this.isBooking = false;
             this.bookedTrip = response?.data ?? response;
-            console.log('📌 bookedTrip set to:', this.bookedTrip);
-            
             this.startSearchingState();
             this.cdr.detectChanges();
           });
@@ -393,116 +427,149 @@ export class FormsComponent implements AfterViewInit, OnDestroy {
       });
   }
 
-  // ── Searching State: countdown + poll for driver acceptance ──────────
+  // ── Searching State ───────────────────────────────────────────────────
   startSearchingState() {
-    console.log('🔍 startSearchingState() called');
     this.viewState = 'searching';
     this.searchSecondsLeft = 120;
     this.noDriverFound = false;
 
     const tripId = this.bookedTrip?.id ?? this.bookedTrip?.tripId ?? this.bookedTrip?.trip_id;
-    console.log('📌 bookedTrip object:', this.bookedTrip);
-    console.log('📌 extracted tripId:', tripId);
-    
     if (!tripId) {
       console.error('❌ No tripId found! Cannot start polling');
       return;
     }
 
-    console.log('✅ Starting polling + timer for tripId:', tripId);
-
-    // ✅ Start BOTH timer + polling together
     this.searchTimerRef = setInterval(() => {
       this.zone.run(() => {
         this.searchSecondsLeft--;
-        console.log('⏱️ Timer tick - seconds left:', this.searchSecondsLeft);
-
-        // 🔁 Poll API on every tick
         this.checkTripStatus(tripId);
 
         if (this.searchSecondsLeft <= 0) {
-          console.log('⏱️ Timeout reached');
           this.clearTimers();
           this.noDriverFound = true;
           this.cdr.detectChanges();
         }
       });
-    }, 2000); // ✅ now runs every 2 seconds
+    }, 2000);
   }
 
-private checkTripStatus(tripId: string) {
-  const userId = this.auth.getUserId();
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    ...(userId ? { 'X-User-Id': userId } : {})
-  });
-
-  console.log('Polling trip status for:', tripId, 'with userId:', userId);
-  this.http.post<any>(`http://localhost:8082/api/trips/status`, { tripId }, { headers })
-    .subscribe({
-      next: (res: any) => {
-        console.log('Poll response:', res);
-        this.zone.run(() => {
-          if (res.status === 'DRIVER_ARRIVING') {
-            console.log('Driver arriving:', res);
-            this.clearTimers();
-            this.acceptedTrip = res;
-            this.viewState = 'tracking';
-            this.sourceLat = this.sourceLat || res.pickupLat;
-            this.sourceLng = this.sourceLng || res.pickupLng;
-            this.destLat = this.destLat || res.dropoffLat;
-            this.destLng = this.destLng || res.dropoffLng;
-            this.initTrackingMap();
-            this.startDriverTracking(tripId);
-            this.cdr.detectChanges();
-          }
-        });
-      },
-      error: (err: any) => {
-        console.error('Poll error:', err);
-      }
+  private checkTripStatus(tripId: string) {
+    const userId = this.auth.getUserId();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      ...(userId ? { 'X-User-Id': userId } : {})
     });
-}
 
-  // ── Driver Tracking: poll driver location ─────────────────────────────
+    this.http.post<any>(API_URLS.TRIPS_STATUS, { tripId }, { headers })
+      .subscribe({
+        next: (res: any) => {
+          this.zone.run(() => {
+            const data = res?.data ?? res;
+            // Handle both MATCHED (main app) and DRIVER_ARRIVING (location app) statuses
+            if (data.status === 'MATCHED' || data.status === 'DRIVER_ARRIVING') {
+              console.log('Driver found/arriving:', data);
+              this.clearTimers();
+              this.acceptedTrip = data;
+              this.viewState = 'tracking';
+              this.sourceLat = this.sourceLat || data.pickupLat;
+              this.sourceLng = this.sourceLng || data.pickupLng;
+              this.destLat = this.destLat || data.dropoffLat;
+              this.destLng = this.destLng || data.dropoffLng;
+              this.initTrackingMap();
+              this.startDriverTracking(tripId);
+              this.cdr.detectChanges();
+            }
+          });
+        },
+        error: (err: any) => {
+          console.error('Poll error:', err);
+        }
+      });
+  }
+
+  // ── Driver Tracking: poll location service + completion status ────────
   startDriverTracking(tripId: string) {
+    // Poll driver location from the location service
     this.trackingPollRef = setInterval(() => {
+      const driverId = this.acceptedTrip?.driverId ?? this.acceptedTrip?.DriverId;
       const userId = this.auth.getUserId();
       const headers = new HttpHeaders(userId ? { 'X-User-Id': userId } : {});
-      
-      // Poll for trip completion status
-      this.http.post<any>(`http://localhost:8082/api/trips/get-complete`, { tripId }, { headers })
+
+      this.http.get<any>(API_URLS.LOCATION_DRIVER(driverId), { headers })
+        .subscribe({
+          next: (response) => {
+            this.zone.run(() => {
+              const data = response?.data ?? response;
+              console.log('Driver location update:', data);
+
+              if (data.latitude && data.longitude) {
+                this.driverLat = data.latitude;
+                this.driverLng = data.longitude;
+
+                if (this.driverMarker) {
+                  this.driverMarker.setLatLng([this.driverLat, this.driverLng]);
+                  this.trackingMap?.panTo([this.driverLat, this.driverLng]);
+                } else if (this.trackingMap) {
+                  this.driverMarker = L.marker([this.driverLat, this.driverLng], {
+                    icon: this.createCarIcon()
+                  }).bindPopup('🚗 Driver').addTo(this.trackingMap);
+                }
+
+                this.checkDriverArrival();
+              }
+
+              this.cdr.detectChanges();
+            });
+          },
+          error: (err) => {
+            console.error('Error fetching driver location:', err);
+          }
+        });
+    }, 6000);
+
+    // Poll for trip completion — navigate to payment when done
+    this.completionPollRef = setInterval(() => {
+      const userId = this.auth.getUserId();
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json',
+        ...(userId ? { 'X-User-Id': userId } : {})
+      });
+
+      this.http.post<any>(API_URLS.TRIPS_GET_COMPLETE, { tripId }, { headers })
         .subscribe({
           next: (res) => {
             this.zone.run(() => {
               console.log('Completion status check:', res);
-              
-              // Check if trip is completed
+
+              // Update trip status for UI
+              if (res.status && this.acceptedTrip) {
+                this.acceptedTrip.status = res.status;
+              }
+
               if (res.status === 'COMPLETED') {
-                console.log('Trip completed! Redirecting to payment page...');
+                console.log('Trip completed! Navigating to payment...');
+                clearInterval(this.completionPollRef);
+                this.completionPollRef = null;
                 clearInterval(this.trackingPollRef);
                 this.trackingPollRef = null;
                 this.destroyTrackingMap();
-                
-                // Redirect to payment page
+
                 this.router.navigate(['/payment', tripId], {
                   state: {
                     riderId: userId,
-                    amount: this.bookedTrip?.estimatedFare || this.fare
+                    amount: this.bookedTrip?.estimatedFare ?? this.fare
                   }
                 });
               }
-              
-              // Still update driver location from the regular trip status
-              if (res.driverLat && res.driverLng) {
+
+              // Also update driver location if available in completion response
+              if (res.driverLat && res.driverLng && this.driverMarker) {
                 this.driverLat = res.driverLat;
                 this.driverLng = res.driverLng;
-                if (this.driverMarker) {
-                  this.driverMarker.setLatLng([this.driverLat, this.driverLng]);
-                  this.trackingMap?.panTo([this.driverLat, this.driverLng]);
-                }
+                this.driverMarker.setLatLng([this.driverLat, this.driverLng]);
+                this.trackingMap?.panTo([this.driverLat, this.driverLng]);
               }
-              
+
               this.cdr.detectChanges();
             });
           },
@@ -510,7 +577,58 @@ private checkTripStatus(tripId: string) {
             console.error('Error polling trip completion:', err);
           }
         });
-    }, 3000); // Poll every 3 seconds for completion status
+    }, 3000);
+  }
+
+  private drawRouteToDestination() {
+    if (!this.sourceLat || !this.destLat) return;
+
+    const startLat = this.driverLat || this.sourceLat;
+    const startLng = this.driverLng || this.sourceLng;
+
+    const routeUrl = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${this.destLng},${this.destLat}?overview=full&geometries=geojson`;
+    fetch(routeUrl)
+      .then(res => res.json())
+      .then((data) => {
+        if (data.code === 'Ok' && data.routes?.length) {
+          const coords = data.routes[0].geometry.coordinates.map((c: number[]) => [c[1], c[0]]);
+          L.polyline(coords, { color: '#2563eb', weight: 5, opacity: 0.8 }).addTo(this.trackingMap);
+        }
+      })
+      .catch((err) => console.warn('Route drawing failed:', err));
+  }
+
+  private checkDriverArrival() {
+    const distance = this.calculateDistance(
+      this.driverLat, this.driverLng,
+      this.sourceLat, this.sourceLng
+    );
+
+    console.log('Distance to pickup:', distance.toFixed(2), 'km');
+
+    if (distance < 0.5 && !this.driverArriving) {
+      if (this.driverArrivingTimeoutRef) {
+        clearTimeout(this.driverArrivingTimeoutRef);
+      }
+      this.driverArrivingTimeoutRef = setTimeout(() => {
+        this.zone.run(() => {
+          this.driverArriving = true;
+          this.cdr.detectChanges();
+          console.log('✅ Driver arriving!');
+        });
+      }, 2000);
+    }
+  }
+
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   cancelSearch() {
@@ -519,7 +637,6 @@ private checkTripStatus(tripId: string) {
     this.noDriverFound = false;
     this.searchSecondsLeft = 120;
 
-    // Optionally cancel trip on backend
     const tripId = this.bookedTrip?.id ?? this.bookedTrip?.tripId;
     if (tripId) {
       const userId = this.auth.getUserId();
@@ -527,7 +644,7 @@ private checkTripStatus(tripId: string) {
         'Content-Type': 'application/json',
         ...(userId ? { 'X-User-Id': userId } : {})
       });
-      this.http.put(`http://localhost:8082/api/trips/${tripId}/cancel`, {}, { headers }).subscribe({ error: () => {} });
+      this.http.put(API_URLS.TRIPS_BASE + `/${tripId}/cancel`, {}, { headers }).subscribe({ error: () => {} });
     }
 
     this.cdr.detectChanges();

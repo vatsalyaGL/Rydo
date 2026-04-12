@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1/location")
 public class LocationController {
@@ -27,9 +28,9 @@ public class LocationController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("driver-location")
-    public ResponseEntity<LocationUpdateDTO> updateLocation(@Valid @RequestBody LocationRequestDTO dto) {
-        LocationUpdateDTO loc = locationService.fetchDriverLocation(dto);
-        return new ResponseEntity<>(loc, HttpStatus.FOUND);
+    @GetMapping("driver/{id}")
+    public ResponseEntity<LocationUpdateDTO> fetchDriverLocation(@PathVariable UUID id) {
+        LocationUpdateDTO loc = locationService.fetchDriverLocation(id);
+        return new ResponseEntity<>(loc, HttpStatus.OK);
     }
 }

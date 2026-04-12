@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { API_URLS } from '../../core/api.config';
 
 interface RatingData {
   tripId: string;
@@ -68,7 +69,7 @@ export class RatingComponent implements OnInit {
     }
 
     // Get trip details to determine who to rate
-    this.http.get<any>(`http://localhost:8082/api/trips/${this.tripId}`)
+    this.http.get<any>(API_URLS.TRIPS_BASE + `/${this.tripId}`)
       .subscribe({
         next: (trip) => {
           let rateeId: string;
@@ -139,7 +140,7 @@ export class RatingComponent implements OnInit {
     };
 
     this.http.post(
-      'http://localhost:8010/api/v1/ratings',
+      API_URLS.RATINGS_BASE,
       payload,
       {
         headers,

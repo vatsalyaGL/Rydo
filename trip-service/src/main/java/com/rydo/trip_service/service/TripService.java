@@ -3,6 +3,7 @@ package com.rydo.trip_service.service;
 import com.rydo.trip_service.dto.*;
 import com.rydo.trip_service.entity.Trip;
 import com.rydo.trip_service.enums.TripStatus;
+import com.rydo.trip_service.exception.TripNotFoundException;
 import com.rydo.trip_service.repository.TripRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class TripService {
@@ -22,12 +22,9 @@ public class TripService {
     private final TripRepository tripRepository;
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private final MatchingTaskService matchingTaskService;
 
-    public TripService(TripRepository tripRepository, MatchingTaskService matchingTaskService) {
+    public TripService(TripRepository tripRepository) {
         this.tripRepository = tripRepository;
-        this.matchingTaskService = matchingTaskService;
     }
     public Trip createTrip(TripCreateRequest tripRequest) {
         // 1. Generate ULID and set initial state
@@ -42,8 +39,7 @@ public class TripService {
         newTrip.setFinalFare(estimatedFare.multiply(newTrip.getSurgeMultiplier()));
 
         //save in db
-        Trip savedTrip = tripRepository.save(newTrip);
-        return savedTrip;
+        return tripRepository.save(newTrip);
     }
 
     //called by driver
@@ -96,6 +92,22 @@ public class TripService {
                 otp
         );
     }
+    public StartRideDTO startRide(TripAcceptDTO dto){
+        Trip trip = tripRepository.findById(dto.getTripId()).orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
+        if (trip.getStatus() == TripStatus.IN_PROGRESS) {
+            throw new IllegalArgumentException("Ride is already in progress") ;
+        }
+
+        if (trip.getStatus() != TripStatus.DRIVER_ARRIVING) {
+            throw new IllegalStateException("Ride cannot be started from status: " + trip.getStatus());
+        }
+        trip.setDriverArrivedAt(OffsetDateTime.now());
+        trip.setPickupAt(OffsetDateTime.now());
+        trip.setStatus(TripStatus.IN_PROGRESS);
+        tripRepository.save(trip);
+        return new StartRideDTO();
+    }
 
     public TripStatusResponseDTO getTripStatus(TripStatusRequest dto) {
 
@@ -121,7 +133,12 @@ public class TripService {
         trip.setMatchedAt(OffsetDateTime.now());
         tripRepository.save(trip);
     }
-
+    public Trip cancelTrip(TripCancelRequest dto){
+        Trip trip = tripRepository.findById(dto.getTripId())
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+        trip.setStatus(TripStatus.CANCELLED);
+        return tripRepository.save(trip);
+    }
     public TripCompleteResponse getCompleteStatus(TripCompleteRequest dto){
         Trip trip = tripRepository.findById(dto.getTripId())
                 .orElseThrow(() -> new RuntimeException("Trip not found"));

@@ -108,12 +108,12 @@
       <div class="accepted-badge">
         <span class="accepted-check">✅</span>
         <div>
-          <div class="accepted-title">Ride Accepted!</div>
-          <div class="accepted-sub">Head to the pickup point</div>
+          <div class="accepted-title">Driver Arriving</div>
+          <div class="accepted-sub">Heading to pickup location</div>
         </div>
       </div>
 
-      <!-- Accepted ride summary card -->
+      <!-- Ride summary -->
       <div class="accepted-card">
         <div class="ac-row">
           <div class="ac-icon">💰</div>
@@ -153,15 +153,93 @@
         </div>
       </div>
 
-      <!-- Map showing driver → pickup → dropoff -->
-      <div class="map-label">📍 Navigate to Pickup</div>
+      <!-- Start Ride Button -->
+      <button class="start-ride-btn" (click)="startRide()">
+        🚗 Start Ride
+      </button>
+
+      <!-- Map -->
+      <div class="map-label">🗺️ Route to Destination</div>
       <div id="driver-accepted-map"></div>
 
-      <button class = "complete-trip-btn" (click) = "completeTrip()">
-        End Ride & Collect Fare
+      <button class="back-btn" style="margin-top: 20px;" (click)="backToIdle()">← Back</button>
+    </div>
+  </ng-container>
 
+  <!-- ═══════ IN-RIDE STATE ═══════ -->
+  <ng-container *ngIf="isRideInProgress() && acceptedRide">
+    <div class="accepted-screen">
+      <div class="accepted-badge in-ride">
+        <span class="accepted-check">🚗</span>
+        <div>
+          <div class="accepted-title">On Trip</div>
+          <div class="accepted-sub">Driving to destination</div>
+        </div>
+      </div>
+
+      <!-- Ride summary -->
+      <div class="accepted-card">
+        <div class="ac-row">
+          <div class="ac-icon">💰</div>
+          <div class="ac-label">Fare</div>
+          <div class="ac-val fare-val">₹{{ acceptedRide.estimatedFare }}</div>
+        </div>
+        <div class="ac-divider"></div>
+        <div class="ac-row">
+          <div class="ac-icon">📏</div>
+          <div class="ac-label">Distance</div>
+          <div class="ac-val">{{ acceptedRide.estimatedDistanceKm | number:'1.1-1' }} km</div>
+        </div>
+        <div class="ac-divider"></div>
+        <div class="ac-row">
+          <div class="ac-icon">{{ getVehicleIcon(acceptedRide.vehicleType) }}</div>
+          <div class="ac-label">Vehicle Type</div>
+          <div class="ac-val">{{ acceptedRide.vehicleType }}</div>
+        </div>
+      </div>
+
+      <!-- Route detail -->
+      <div class="accepted-route">
+        <div class="ar-stop">
+          <div class="ar-dot green"></div>
+          <div>
+            <div class="ar-label">Pickup</div>
+            <div class="ar-addr">{{ acceptedRide.pickupAddress }}</div>
+          </div>
+        </div>
+        <div class="ar-line"></div>
+        <div class="ar-stop">
+          <div class="ar-dot red"></div>
+          <div>
+            <div class="ar-label">Dropoff</div>
+            <div class="ar-addr">{{ acceptedRide.dropoffAddress }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location status control -->
+      <div class="location-control">
+        <div class="location-status">
+          <strong>Location updates:</strong>
+          <span *ngIf="locationStatus === 'active'"> Sending every 2 seconds</span>
+          <span *ngIf="locationStatus === 'stopped'"> Stopped</span>
+          <span *ngIf="locationStatus === 'inactive'"> Inactive</span>
+        </div>
+        <button class="stop-btn" *ngIf="locationStatus === 'active'" (click)="stopLocationUpdates()">
+          ⛔ Stop sending location
+        </button>
+      </div>
+
+      <!-- Map -->
+      <div class="map-label">🗺️ Live Route Progress</div>
+      <div id="driver-accepted-map"></div>
+
+      <!-- End Ride -->
+      <button class="complete-trip-btn" [disabled]="!driverReachedDestination" (click)="completeTrip()">
+        End Ride &amp; Collect Fare
       </button>
-      <button class="back-btn" style="margin-top: 20px;" (click)="backToIdle()">✓ Done / Back</button>
+
+      <button class="back-btn" style="margin-top: 12px;" (click)="cancelCurrentRide()">✕ Cancel Ride</button>
     </div>
   </ng-container>
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { API_URLS } from '../../core/api.config';
 
 @Component({
   selector: 'app-payment',
@@ -50,7 +51,7 @@ export class PaymentsComponent implements OnInit, OnDestroy {
   }
 
   fetchTripDetails() {
-    this.http.get<any>(`http://localhost:8082/api/trips/${this.tripId}`)
+    this.http.get<any>(API_URLS.TRIPS_BASE + `/${this.tripId}`)
       .subscribe({
         next: (res) => {
           this.riderId = res.riderId ?? res.rider?.id;
@@ -78,7 +79,7 @@ createPayment() {
       amount: this.amount
     };
 
-    this.http.post<any>('http://localhost:8007/api/payments', payload)
+    this.http.post<any>(API_URLS.PAYMENTS_BASE, payload)
       .subscribe({
         next: (res) => {
           this.payment = res;
@@ -100,7 +101,7 @@ createPayment() {
   }
 
   checkStatus() {
-    this.http.get<any>(`http://localhost:8007/api/payments/${this.tripId}`)
+    this.http.get<any>(API_URLS.PAYMENT_BY_TRIP(this.tripId))
       .subscribe(res => {
         this.status = res.status;
         this.payment = res;

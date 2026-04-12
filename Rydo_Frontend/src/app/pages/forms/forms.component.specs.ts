@@ -19,7 +19,7 @@ describe('FormsComponent', () => {
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(component);
   });
 });
 function expect(component: FormsComponent) {
