@@ -144,7 +144,7 @@ export class RatingComponent implements OnInit {
       payload,
       {
         headers,
-        responseType: 'text'   // ✅ THIS IS THE FIX
+        responseType: 'text'   
       }
     ).subscribe({
         next: () => {
